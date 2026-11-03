@@ -1720,7 +1720,7 @@ zh:{
   e_comma:"逗号只能分隔函数参数。想一次输入整个向量，就写成 (P, Q) 再按回车，会自动拆到各栏",e_arity:a=>a.f+" 需要 "+a.n+" 个参数，例如 "+a.ex,e_funcNoArg:a=>a.f+" 后面缺少自变量，例如 "+a.f+"(x)",
   e_absUnclosed:"这个绝对值符号“|”没有闭合",e_fracArgs:"\\frac 后面要跟两组花括号，例如 \\frac{a}{b}",e_logBase:"对数的底只支持 2、10 和 e，例如 \\log_2 x",e_vecCount:a=>"这里写了 "+a.n+" 个分量，但"+(a.d===2?"二":"三")+"维需要 "+a.d+" 个",
   e_unexpectedAny:"这个式子没法识别",penBanner:"点一下画流线；拖动画路径，首尾接上算环量和通量",penDone:"完成",tip:"拖动平移，滚轮缩放；画路径工具里点一下画流线",tipClose:"知道了",keysSum:"操作和快捷键",
-  keys:[{g:"拖动空白处",d:"平移；三维里是旋转"},{g:"滚轮、双指捏合",d:"缩放"},{g:"触控板双指滑动",d:"平移；三维里是旋转"},{g:"画路径工具里点一下",d:"从这里画一条流线；再点它的起点就删掉"},{g:"拖红点",d:"移动探针，读那一点的数值"},{k:[["P"]],d:"笔工具，画路径"},{k:[["Delete"]],d:"清除流线和路径"},{k:[["0"]],d:"回到默认视图"},{k:[["F"]],d:"全屏"},{k:[["空格"]],d:"暂停或继续动画（先点一下画布）"},{k:[["←"],["→"],["↑"],["↓"]],d:"移动探针；加 Shift 是平移"},{k:[["+"],["−"]],d:"放大、缩小"},{k:[["?"]],d:"打开快捷键列表"}],
+  keys:[{g:"拖动空白处",d:"平移；三维里是旋转"},{g:"滚轮、双指捏合",d:"缩放"},{g:"触控板双指斜着或横着滑",d:"平移；三维里是旋转"},{g:"画路径工具里点一下",d:"从这里画一条流线；再点它的起点就删掉"},{g:"拖红点",d:"移动探针，读那一点的数值"},{k:[["P"]],d:"笔工具，画路径"},{k:[["Delete"]],d:"清除流线和路径"},{k:[["0"]],d:"回到默认视图"},{k:[["F"]],d:"全屏"},{k:[["空格"]],d:"暂停或继续动画（先点一下画布）"},{k:[["←"],["→"],["↑"],["↓"]],d:"移动探针；加 Shift 是平移"},{k:[["+"],["−"]],d:"放大、缩小"},{k:[["?"]],d:"打开快捷键列表"}],
   hDisp:"显示",hAna:"分析",style:"画法",stA:"箭头",stS:"流线",stB:"两者",lWh:"旋度小风车",tbPause:"暂停动画（空格）",tbPlay:"继续动画（空格）",aNullc:"显示零等倾线",aWheel:"打开小风车",
   aCurl:"旋度背景",aDiv:"散度背景",aStream:"换成流线图",aLoopCirc:"画一圈算环量",aLoopFlux:"画一圈算通量",aLoopO:"绕原点画一圈",aLoopMiss:"画一个不包住原点的圈",kStable:"稳定",kUnstable:"不稳定",
   kSaddle:"鞍点",kCenter:"中心",eqLin:"中心是按线性近似判断的。",eqCntS:a=>a.n+" 个平衡点",gOther:"其他",pathPos:"顺着场",pathNeg:"逆着场",
@@ -1801,7 +1801,7 @@ en:{
   e_unexpectedAny:"This expression can’t be read",
   penBanner:"Click for a streamline; drag for a path; close the loop for circulation and flux",
   penDone:"Done",tip:"Drag to pan, scroll to zoom; with Draw path, click to add a streamline",tipClose:"Got it",keysSum:"Gestures and shortcuts",
-  keys:[{g:"Drag empty space",d:"pan (rotate in 3D)"},{g:"Mouse wheel or pinch",d:"zoom"},{g:"Two-finger swipe",d:"pan (rotate in 3D)"},{g:"Click (Draw path tool)",d:"draw a streamline from there; click its start again to remove it"},{g:"Drag the red dot",d:"move the probe and read values there"},{k:[["P"]],d:"pen tool for drawing paths"},{k:[["Delete"]],d:"clear streamlines and path"},{k:[["0"]],d:"reset the view"},{k:[["F"]],d:"full screen"},{k:[["Space"]],d:"pause or resume motion (click the canvas first)"},{k:[["←"],["→"],["↑"],["↓"]],d:"move the probe; with Shift, pan"},{k:[["+"],["−"]],d:"zoom in and out"},{k:[["?"]],d:"Open this list of shortcuts"}],
+  keys:[{g:"Drag empty space",d:"pan (rotate in 3D)"},{g:"Mouse wheel or pinch",d:"zoom"},{g:"Two-finger swipe, starting sideways or diagonally",d:"pan (rotate in 3D)"},{g:"Click (Draw path tool)",d:"draw a streamline from there; click its start again to remove it"},{g:"Drag the red dot",d:"move the probe and read values there"},{k:[["P"]],d:"pen tool for drawing paths"},{k:[["Delete"]],d:"clear streamlines and path"},{k:[["0"]],d:"reset the view"},{k:[["F"]],d:"full screen"},{k:[["Space"]],d:"pause or resume motion (click the canvas first)"},{k:[["←"],["→"],["↑"],["↓"]],d:"move the probe; with Shift, pan"},{k:[["+"],["−"]],d:"zoom in and out"},{k:[["?"]],d:"Open this list of shortcuts"}],
   hDisp:"Display",hAna:"Analysis",style:"Style",stA:"Arrows",stS:"Lines",stB:"Both",lWh:"Curl paddle wheel",tbPause:"Pause motion (Space)",
   tbPlay:"Resume motion (Space)",aNullc:"Show nullclines",aWheel:"Show the paddle wheel",aCurl:"Curl background",aDiv:"Divergence background",
   aStream:"Streamline plot",aLoopCirc:"Draw a loop: circulation",aLoopFlux:"Draw a loop: flux",aLoopO:"Loop around the origin",
@@ -5281,49 +5281,45 @@ const up=e=>{
 cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);
 cv.addEventListener("pointerleave",()=>{if(!ptrs.size){setHot(false);if(S.eqHot>=0){S.eqHot=-1;dyn=true}if(GZH!==null){GZH=null;dyn=true}cv.classList.remove("gz")}});
 /* 滚轮和触控板：
-   · 双指捏合（浏览器给的是带 ctrl 的小滚轮量）：缩放，按每像素 2% 换算，比手指张开的比例快一倍，跟手的时间常数也更短；
-   · 触控板双指同向滑动：平移画布（三维里是转视角），和按住拖动一样，松手后的惯性由系统给；
-   · 鼠标滚轮：缩放，每格约 16% */
-const GST={on:false,s:1},WHL={t:0,mode:null,pad:-1e9};
-/* 分辨是触控板在滑还是鼠标滚轮。浏览器不直接说，只能看每一下的样子：
-   · 按“行”或“页”滚的（多是 Firefox 的鼠标滚轮）→ 滚轮；
-   · 有横向分量、或者量带小数 → 触控板；
-   · 有 wheelDeltaY 的浏览器（Chrome、Edge、Safari）：鼠标滚轮每一格正好是 ±120 的整数倍；
-     Mac 的触控板 wheelDeltaY 正好是 deltaY 的 −3 倍，Windows 的精确式触控板则是任意值 → 不是 120 的倍数就当触控板；
-   · 都没有（Firefox 的像素滚动）：大的整数步长是滚轮，小的是触控板。
-   同一串滚动（两下之间不到 0.22 秒）只判断一次；中途一旦出现触控板的特征就改成触控板，以后一直按触控板走，
-   所以双指往哪个方向滑、来回滑、画圈，都不会中途突然变成缩放 */
-function wheelKind(e){
-  if(e.deltaMode!==0)return"mouse";
-  if(e.deltaX!==0)return"pad";
+   · 双指捏合（浏览器给的是带 ctrl 的小滚轮量）：缩放，按每像素 2% 换算；
+   · 鼠标滚轮：缩放，每格约 16%；
+   · 触控板双指滑动：平移画布（三维里是转视角）。
+   浏览器不说是鼠标还是触控板，而且鼠标滚轮的量会随网页缩放、系统设置、鼠标型号变成各种数，
+   所以只认两种不会出错的手指迹象：带横向分量（鼠标滚轮只有竖向），或者 Mac 触控板特有的 wheelDeltaY = −3·deltaY。
+   其余一律按鼠标滚轮缩放。一串滑动（两下间隔不到 0.22 秒）里只要出现过手指迹象，这一串剩下的部分、以及之后 0.5 秒内都按平移走 */
+const GST={on:false,s:1},WHL={t:0,pad:false,padUntil:0};
+function wheelFinger(e){
+  if(e.deltaX!==0)return true;
   const dy=e.deltaY,w=e.wheelDeltaY;
-  if(!Number.isInteger(dy))return"pad";
-  if(typeof w==="number"&&w!==0){if(Math.abs(w+3*dy)<1.01||w%120!==0)return"pad";return"mouse"}
-  return Math.abs(dy)>=50?"mouse":"pad";
+  return typeof w==="number"&&w!==0&&dy!==0&&Math.abs(dy)<40&&Math.abs(w+3*dy)<1.01;
 }
 function wheelIsSwipe(e){
-  const now=performance.now(),k=wheelKind(e);if(k==="pad")WHL.pad=now;
-  /* 认出触控板以后 1.5 秒内一直按触控板走：来回滑、换方向、中途停一下再滑，都不会被重新判断成滚轮 */
-  if(now-WHL.pad<1500)WHL.mode="pad";else if(now-WHL.t>220)WHL.mode=k;
-  WHL.t=now;wdbg(e,k,WHL.mode);return WHL.mode==="pad";
+  const now=performance.now();
+  if(now-WHL.t>220)WHL.pad=now<WHL.padUntil;
+  WHL.t=now;
+  if(e.deltaMode===0&&wheelFinger(e))WHL.pad=true;
+  if(WHL.pad)WHL.padUntil=now+500;
+  return WHL.pad;
 }
 /* 排查用：地址后面加 #wheel-debug 打开页面，右下角会列出最近的滚动事件和判断结果（刷新后消失） */
-const WDBG=location.hash==="#wheel-debug"?(()=>{const d=document.createElement("pre");d.style.cssText="position:fixed;right:10px;bottom:10px;z-index:2147483600;margin:0;padding:8px 10px;font:11px/1.5 ui-monospace,Menlo,Consolas,monospace;color:#e8e3d8;background:rgba(10,13,19,.94);border:1px solid rgba(255,255,255,.22);border-radius:8px;pointer-events:none;white-space:pre";d.textContent="wheel-debug: 在画布上滑动或捏合";document.body.appendChild(d);return{el:d,rows:[],t:0}})():null;
-function wdbg(e,k,mode){
+const WDBG=location.hash==="#wheel-debug"?(()=>{const d=document.createElement("pre");d.style.cssText="position:fixed;right:10px;bottom:10px;z-index:2147483600;margin:0;padding:8px 10px;font:11px/1.5 ui-monospace,Menlo,Consolas,monospace;color:#e8e3d8;background:rgba(10,13,19,.94);border:1px solid rgba(255,255,255,.22);border-radius:8px;pointer-events:none;white-space:pre";d.textContent="wheel-debug: 在画布上滚动、滑动或捏合";document.body.appendChild(d);return{el:d,rows:[],t:0}})():null;
+function wdbg(e,act){
   if(!WDBG)return;const now=performance.now(),gap=WDBG.t?Math.round(now-WDBG.t):0;WDBG.t=now;
   const f=v=>(typeof v==="number"?v.toFixed(2):String(v)).padStart(8);
-  WDBG.rows.unshift(`+${String(gap).padStart(4)}ms dx${f(e.deltaX)} dy${f(e.deltaY)} wdy${f(e.wheelDeltaY)} mode${e.deltaMode}${e.ctrlKey?" ctrl":"     "} → ${k==="pad"?"触控板":k==="mouse"?"滚轮":k} ⇒ ${mode==="pad"?"平移":mode==="pinch"?"捏合缩放":"缩放"}`);
+  WDBG.rows.unshift(`+${String(gap).padStart(4)}ms dx${f(e.deltaX)} dy${f(e.deltaY)} wdy${f(e.wheelDeltaY)} mode${e.deltaMode}${e.ctrlKey?" ctrl":"     "} ⇒ ${act}`);
   WDBG.rows.length=Math.min(WDBG.rows.length,16);WDBG.el.textContent="最近的滚动事件（新的在上）\n"+WDBG.rows.join("\n");
 }
 cv.addEventListener("wheel",e=>{
   e.preventDefault();hideTip();
   if(e.ctrlKey&&GST.on)return;
   let dx=e.deltaX,dy=e.deltaY;if(e.deltaMode===1){dx*=16;dy*=16}else if(e.deltaMode===2){dx*=W;dy*=H}
-  if(e.ctrlKey){wdbg(e,"pinch","pinch");const f=Math.exp(clamp(dy,-300,300)*0.02);if(S.mode==="3d"){zoom3(f,true);return}const[sx,sy]=localXY(e);zoomAt(sx,sy,f,true);return}
+  if(e.ctrlKey){wdbg(e,"捏合 → 缩放");const f=Math.exp(clamp(dy,-300,300)*0.02);if(S.mode==="3d"){zoom3(f,true);return}const[sx,sy]=localXY(e);zoomAt(sx,sy,f,true);return}
   if(wheelIsSwipe(e)){
+    wdbg(e,"手指 → 平移");
     if(S.mode==="3d"){camT=null;vel.yaw=vel.pitch=0;const g=camGoal();g.yaw-=dx*0.0065;g.pitch=clamp(g.pitch-dy*0.0065,-PMAX,PMAX);dirty=true;return}
     panBy(-dx,-dy);return;
   }
+  wdbg(e,"滚轮 → 缩放");
   const f=Math.exp(clamp(dy,-300,300)*0.0015);
   if(S.mode==="3d"){zoom3(f,false);return}
   const[sx,sy]=localXY(e);zoomAt(sx,sy,f,false);
