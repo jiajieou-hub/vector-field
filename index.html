@@ -68,8 +68,8 @@
   /* 画布用色：保持原样（readTheme 和演示读这些） */
   --stage:#0a0e15;--stage-hi:#131a27;--grid:#141a25;--grid-2:#0e131b;--axis:#3a4457;--floor:rgba(140,160,205,.035);
   --cv-ink:#e8e4db;--cv-muted:#828c9e;--cv-faint:#5f697b;--cv-accent:#d7b87c;--cv-glass:rgba(10,14,21,.74);--cv-line:#2a3344;
-  --particle:rgba(236,226,204,.40);
-  --c0:#33467c;--c1:#367ea2;--c2:#72bfb1;--c3:#f0deae;
+  --particle:rgba(236,226,204,.46);
+  --c0:#4b64a9;--c1:#3f90b6;--c2:#79c8b8;--c3:#f0deae;
   --pos:#d77b5f;--neg:#4f88d6;--heat-a:128;
   --probe:#ff6b93;--probe-ring:rgba(255,107,147,.18);--tick:#737d90;
   --pin:#d7b87c;--ncp:#c3a2ff;--pa:#f2cf77;--pb:#ff9a7c;--pc:#a9b8ff;--ncq:#7fd497;--eq:#e8e4db;--tsx:#8cc4ff;--tsy:#ffb07c;--tsz:#9fe0a8;
@@ -871,6 +871,55 @@ button,summary,label.sw,.seg,.chips,.cgl,.slh,.fr .fl,.fx label,.prm .pl,.cnt,.p
 .vp-ring{position:absolute;left:50%;top:52%;width:150%;aspect-ratio:1;translate:-50% -50%;border-radius:50%;pointer-events:none;z-index:3;mix-blend-mode:screen;
   background:radial-gradient(circle,rgba(243,201,111,0) 56%,rgba(243,201,111,.42) 60.5%,rgba(255,240,205,.16) 63%,rgba(243,201,111,0) 67%);animation:vfRing .9s cubic-bezier(.2,.8,.2,1) forwards}
 @keyframes vfRing{from{scale:.06;opacity:1}to{scale:1.15;opacity:0}}
+/* 图例卡片：画布右上角；左上角的式子卡片不再展开（探针读数改到探针的悬停卡片里） */
+.lgcard{position:absolute;right:12px;top:12px;z-index:6;width:min(256px,calc(100% - 24px));box-sizing:border-box;padding:8px 12px 7px;border-radius:12px;
+  background:var(--hud);border:1px solid var(--glass-edge);box-shadow:inset 0 1px 0 var(--glass-hi),0 16px 36px -16px rgba(0,0,0,.85);
+  -webkit-backdrop-filter:blur(14px) saturate(1.15);backdrop-filter:blur(14px) saturate(1.15);pointer-events:none}
+.lgcard[hidden]{display:none}
+.lgcard .legend{min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;row-gap:2px;align-items:center}
+.lgcard .legend .lg-t{grid-column:1;grid-row:1;margin:0;overflow:visible;text-overflow:clip;font-size:12.5px;line-height:16px}
+.lgcard .legend .bar{grid-column:2;grid-row:1}
+.lgcard .legend .barlab{grid-column:2;grid-row:2;margin:0;font-size:11px;line-height:14px;white-space:nowrap}
+.lgcard .legend .lg-c{grid-column:1/-1;grid-row:1;margin:0;font-size:12.5px;line-height:18px;color:var(--ink-2)}
+.lgcard .legend .lg-nc{grid-column:1/-1;margin-top:4px}
+.lgcard .legend .lg-c3{grid-column:1/-1;margin:1px 0 0;font-size:11px;line-height:14px;color:var(--ink-3)}
+.capc{max-width:calc(100% - var(--lgw,0px))}
+#capTg{display:none}
+/* 探针的悬停卡片：读数一行一项，数值不换行；说明文字按读数的宽度折行 */
+.tt.tt-probe{max-width:none}
+.tt-probe .pt-g{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:2px 14px;margin:5px 0 6px;font-size:12.5px;line-height:1.45;font-variant-numeric:tabular-nums lining-nums}
+.tt-probe .pt-g .k{color:var(--ink-3);white-space:nowrap}
+.tt-probe .pt-g .v{color:var(--ink);white-space:nowrap}
+.tt-probe .tt-d{width:0;min-width:100%}
+.tt-probe .pt-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--probe);margin-right:7px;vertical-align:1px}
+/* 探针卡片：放在画布里、跟着探针走；常驻时右上角有 × */
+.tt.ptcard{position:absolute;z-index:8;pointer-events:none;overflow:hidden;padding:0;transform-origin:50% 50%;transition:opacity .14s ease;
+  background:var(--grain),var(--hud);-webkit-backdrop-filter:blur(14px) saturate(1.15);backdrop-filter:blur(14px) saturate(1.15)}
+.tt.ptcard.on{opacity:var(--pf,1);transform:scaleY(var(--psy,1))}
+.ptcard .pt-in{width:max-content;min-width:214px;padding:8px 12px 9px;box-sizing:border-box}
+.ptcard.m3 .pt-in{min-width:262px}
+.tt.ptcard.pinned{pointer-events:auto}
+.ptcard.pinned .tt-h{padding-right:22px}
+.ptcard .pt-x{position:absolute;top:5px;right:5px;width:24px;height:24px;display:grid;place-items:center;border:0;border-radius:7px;background:none;color:var(--ink-3);cursor:pointer;padding:0}
+.ptcard .pt-x:hover{color:var(--ink);background:rgba(255,255,255,.09)}
+.ptcard .pt-x svg{width:13px;height:13px}
+/* 退出全屏时从整个屏幕收拢到画板位置的那块暗色 */
+.fs-veil{position:fixed;inset:0;z-index:2147482500;pointer-events:none;background:var(--grain),var(--glass-tint),#050608}
+/* 散度、旋度背景是空的时候，画布右上角的说明卡片 */
+.bgnote{position:absolute;right:12px;top:var(--bn-top,66px);z-index:7;width:min(300px,calc(100% - 24px));box-sizing:border-box;padding:11px 14px 12px;border-radius:13px;
+  background:var(--hud);border:1px solid var(--glass-edge);box-shadow:inset 0 1px 0 var(--glass-hi),0 16px 36px -16px rgba(0,0,0,.85);
+  -webkit-backdrop-filter:blur(14px) saturate(1.15);backdrop-filter:blur(14px) saturate(1.15);color:var(--ink-2);font-size:13px;line-height:1.55;pointer-events:auto}
+.bgnote[hidden]{display:none}
+.bgnote h3{margin:0 26px 4px 0;font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.4}
+.bgnote p{margin:0 0 10px}
+.bgnote .bn-x{position:absolute;top:7px;right:7px;width:26px;height:26px;display:grid;place-items:center;border:0;border-radius:8px;background:none;color:var(--ink-3);cursor:pointer;padding:0}
+.bgnote .bn-x:hover{color:var(--ink);background:rgba(255,255,255,.08)}
+.bgnote .bn-x svg{width:14px;height:14px}
+.bgnote .bn-go{font:inherit;font-size:12.5px}
+@media (prefers-reduced-transparency:reduce){.bgnote{background:var(--solid);-webkit-backdrop-filter:none;backdrop-filter:none}}
+/* 三维的视角：四个按钮排成一行，按字的长短分宽度、一起占满这一行 */
+#views{display:flex;flex-wrap:nowrap;gap:6px}
+#views button{flex:1 1 auto;min-width:0;padding-left:6px;padding-right:6px;text-align:center}
 /* 式子卡片换内容时：旧式子的影子叠在原处淡出 */
 .capc{position:relative}
 .cap-ghost{position:absolute;margin:0;pointer-events:none;z-index:1;box-sizing:border-box;overflow:hidden}
@@ -1699,12 +1748,12 @@ zh:{
   tdA:"在网格上画箭头，指向 F 的方向，颜色表示大小。长按可以调密度",tdS:"画出整片流线，看场往哪里流",tdP:"让粒子顺着场流动。长按可以调速度",tdPp:"让粒子顺着场流动，速度在下面调",
   tdSL:"从红色探针出发画一条流线，拖动探针它会跟着变",tdEQ:"标出 F = 0 的点，并判断是结点、焦点、鞍点还是中心",tdSep:"进出鞍点的几条特殊流线，把平面分成几块",
   tdWh:"在探针上放一个小风车，转动的方向和快慢表示旋度",tdNC:"P = 0 和 Q = 0 的曲线：在上面，场分别是竖直的和水平的",tdTS:"从探针出发，看 x(t)、y(t) 随时间怎么变",
-  tdN:"所有箭头一样长，只看方向",tdDiv:"每一点是往外流（红）还是往里流（蓝）",tdCurl:"每一点是逆时针转（红）还是顺时针转（蓝）",tipProbe:"探针",tdProbe:"拖动它，读出这一点的 F、散度和旋度；过探针的流线、小风车和时间曲线都从这里出发",
+  tdN:"所有箭头一样长，只看方向",tdDiv:"每一点是往外流（红）还是往里流（蓝）",tdCurl:"每一点是逆时针转（红）还是顺时针转（蓝）",tdProbePin:"拖动探针，读数跟着变；再点一下探针或点 × 收起",tipProbe:"探针",ptPos:"位置",tdProbe:"拖动探针，读别处的数值；点一下探针，这张卡片就会一直留着",
 
   docTitle:"向量场画板",title:"向量场画板",sub:"输入分量，看箭头、流线和粒子在场里怎么走，并当场算出散度、旋度、环量和通量。",mode2:"二维",mode3:"三维",hEx:"例子",hComp:"分量",hEq:"平衡点",helpSum:"支持的写法",
   hParams:"参数",range:"坐标范围",density:"密度",dens2:a=>"每边 "+a.d+" 个",bg:"背景",bgNone:"无",bgDiv:"散度",bgCurl:"旋度",view:"视角",lP:"流动粒子",lSpd:"粒子速度",
   lSL:"过探针的流线",lNC:"零等倾线",lEQ:"平衡点",tN:"箭头等长（只看方向）",tbPen:"画路径（P）",tbClr:"清除流线和路径（Delete）",zin:"放大（+）",zout:"缩小（−）",home:"回到默认视图（0）",
-  save:"保存图片",saved:"图片已保存",saveFail:"图片没有保存",lgMag:"大小 |F|",zeroDiv:"散度处处为 0",zeroCurl:"旋度处处为 0",
+  save:"保存图片",saved:"图片已保存",saveFail:"图片没有保存",lgMag:"大小 |F|",lgMag2:"|F|",zeroDiv:"散度处处为 0",zeroCurl:"旋度处处为 0",
   help:"运算 <code>+ - * / ^</code>，乘号可以省略，如 <code>2x</code>、<code>xy</code>、<code>sinx</code>。函数有 <code>sin cos tan sec exp ln lg sqrt abs atan2</code> 等（<code>ln</code> 是自然对数，<code>lg</code> 以 10 为底），<code>sin^2 x</code>、<code>|x|</code>、<code>x²</code>、<code>1e-3</code> 都能识别。常数 <code>pi</code>、<code>e</code>；<code>r</code> 是到原点的距离，<code>θ</code>（theta）是极角。<code>a b c k m</code> 和 <code>μ λ ω σ</code> 这类字母会当成参数，下面自动出现滑块。也可以直接写 LaTeX，比如 <code>\\frac{x}{x^2+y^2}</code>、<code>\\sqrt[3]{x}</code>、<code>e^{-x^2}</code>、<code>\\log_2 x</code>。在第一栏输入整个向量，如 <code>(-y, x)</code> 或 <code>\\begin{pmatrix}-y\\\\x\\end{pmatrix}</code>，按回车会拆到各栏。",
   readAs:"理解为",probe:"探针",undef:"未定义",hint2:"拖动平移，滚轮缩放，拖红点读数；画路径工具里点一下画流线、拖动画路径。",hintPen:"画路径工具开着：点一下画一条流线（再点它的起点就删掉），按住拖动画路径。",hint3:"拖动旋转，滚轮缩放，拖红点移动探针；右上角的小坐标轴点一下就换视角。",custom:"自定义的向量场。",
   customShort:"自定义",rnd:"随机",rndNote:"随机拼出来的场。再点一次换一个。",fs:"全屏（F）",fsExit:"退出全屏（Esc）",canvas:"向量场图。方向键移动探针，加减号缩放，F 全屏，P 画路径",split:"已把整个向量拆到各个分量里。",
@@ -1727,7 +1776,7 @@ zh:{
   curlWheel:"探针上的小风车按旋度转：转得越快，旋度越大（为了看得清，转速放大了 6 倍）。",lSep:"鞍点分界线",lTS:"时间曲线（从探针出发）",aSep:"显示分界线",aTS:"看时间曲线",aLoopPlus:"圈住正电荷",aLoopBoth:"两个都圈进去",
   tsNote:"从探针出发，按真实时间解 dx/dt = F。拖动探针，曲线跟着变。",tsEnd:a=>"t ≈ "+a.t+" 时解跑出了范围。",bPenL:"画路径",bClrL:"清除",pauseL:"暂停",
   playL:"继续",greenOk2:"两边相等，符合格林公式",greenBad2:"两边不相等：区域里有奇点",
-  lgDiv:"div F = ∂P/∂x + ∂Q/∂y",lgCurl:"curl F = ∂Q/∂x − ∂P/∂y",capDiv:"红色往外流，蓝色往里流",capCurl:"红色逆时针转，蓝色顺时针转",only2d:"只在二维里用",hDA:"设置",capEdit:"点一下修改式子",capMore:"展开大小图例和探针读数",capLess:"收起读数",feTitle:"输入新的向量场（回车应用，Esc 取消）",feApply:"应用",feCancel:"取消",
+  lgDiv:"div F = ∂P/∂x + ∂Q/∂y",lgSeen:"按屏幕上看到的转向",lgDivS:"div F",lgCurlS:"curl F",zeroDivS:"div F 处处为 0",zeroCurlS:"curl F 处处为 0",lgNegD:"汇",lgPosD:"源",lgNegC:"顺时针",lgPosC:"逆时针",lgDiv3:"div F = ∂P/∂x + ∂Q/∂y + ∂R/∂z",lgCurl:"curl F = ∂Q/∂x − ∂P/∂y",capDiv:"红色往外流，蓝色往里流",capCurl:"红色逆时针转，蓝色顺时针转",only2d:"只在二维里用",curl3dSoon:"三维里暂时只有散度：旋度是一个向量，还在想怎么画",hDA:"设置",capEdit:"点一下修改式子",capMore:"展开大小图例和探针读数",capLess:"收起读数",feTitle:"输入新的向量场（回车应用，Esc 取消）",feApply:"应用",feCancel:"取消",
   tbDrL:"显示和分析（参数、画法、背景、粒子、平衡点、零等倾线…）",drClose:"收起",hDemo:"演示",dmExit:"退出演示",dmPrev:"上一步",dmNext:"下一步",dmPlay:"播放",dmStop:"停止",dmLevel:"细分",
   dmNote:"这是演示用的场。退出演示会回到原来的场。",dmShort:"演示中",dmCirc:"环量",dmFlux:"通量",pStraight:"直线",pStair:"折线",pCurve:"曲线",cCurl:"旋度为 0",cEqual:"三条路径上的积分相等",
   cLoop:"闭合回路（沿直线去、沿折线回）上的积分为 0：",dm2D:"二维",dm3D:"三维",noPot:"这个场没有势函数",dmCollapse:"收起",dmExpand:"展开",cPotYes:"存在势函数 f，使 F = ∇f",cPotNo:"没有整体的势函数",
@@ -1757,7 +1806,7 @@ en:{
   tdA:"Arrows on a grid point along F; their colour shows its size. Press and hold to change the density",tdS:"Streamlines across the view show where the field flows",tdP:"Particles drift along the field. Press and hold to change their speed",tdPp:"Particles drift along the field; set their speed below",
   tdSL:"The streamline through the red probe; it follows as you drag the probe",tdEQ:"Marks the points where F = 0 and tells whether each is a node, focus, saddle or centre",tdSep:"The streamlines into and out of each saddle, which divide the plane into regions",
   tdWh:"A small paddle wheel at the probe; its spin shows the curl there",tdNC:"The curves P = 0 and Q = 0, where the field points straight up or down, or straight sideways",tdTS:"Follow the probe’s path in time and plot x(t) and y(t)",
-  tdN:"Draw every arrow the same length so only direction shows",tdDiv:"Whether the field spreads out (red) or flows in (blue) at each point",tdCurl:"Whether the field turns anticlockwise (red) or clockwise (blue) at each point",tipProbe:"Probe",tdProbe:"Drag it to read F, divergence and curl at that point; the probe line, curl wheel and time series start here",
+  tdN:"Draw every arrow the same length so only direction shows",tdDiv:"Whether the field spreads out (red) or flows in (blue) at each point",tdCurl:"Whether the field turns anticlockwise (red) or clockwise (blue) at each point",tdProbePin:"Drag the probe and the readings follow; click it again, or ×, to close",tipProbe:"Probe",ptPos:"Position",tdProbe:"Drag the probe to read other points; click it to keep this card open",
 
   docTitle:"Vector Field Sketchpad",title:"Vector Field Sketchpad",
   sub:"Type the components and watch arrows, streamlines and particles move through the field, with divergence, curl, circulation and flux computed on the spot.",
@@ -1765,7 +1814,7 @@ en:{
   density:"Density",dens2:a=>a.d+" per side",bg:"Background",bgNone:"None",bgDiv:"Divergence",bgCurl:"Curl",view:"Camera",lP:"Flowing particles",
   lSpd:"Particle speed",lSL:"Streamline through the probe",lNC:"Nullclines",lEQ:"Equilibria",tN:"Equal-length arrows (direction only)",
   tbPen:"Draw a path (P)",tbClr:"Clear streamlines and path (Delete)",zin:"Zoom in (+)",zout:"Zoom out (−)",home:"Reset view (0)",
-  save:"Save image",saved:"Image saved",saveFail:"The image wasn’t saved",lgMag:"magnitude |F|",zeroDiv:"Divergence is 0 everywhere",
+  save:"Save image",saved:"Image saved",saveFail:"The image wasn’t saved",lgMag:"magnitude |F|",lgMag2:"|F|",zeroDiv:"Divergence is 0 everywhere",
   zeroCurl:"Curl is 0 everywhere",
   help:"Operators <code>+ - * / ^</code>. Multiplication can be implicit, as in <code>2x</code>, <code>xy</code>, <code>sinx</code>. Functions include <code>sin cos tan sec exp ln lg sqrt abs atan2</code> (<code>ln</code> is the natural log, <code>lg</code> is base 10), and <code>sin^2 x</code>, <code>|x|</code>, <code>x²</code>, <code>1e-3</code> all work. Constants <code>pi</code> and <code>e</code>; <code>r</code> is the distance to the origin and <code>θ</code> (theta) is the polar angle. Letters such as <code>a b c k m</code> and <code>μ λ ω σ</code> become parameters with their own sliders. You can also type LaTeX, such as <code>\\frac{x}{x^2+y^2}</code>, <code>\\sqrt[3]{x}</code>, <code>e^{-x^2}</code> or <code>\\log_2 x</code>. Type a whole vector in the first box, like <code>(-y, x)</code> or <code>\\begin{pmatrix}-y\\\\x\\end{pmatrix}</code>, and press Enter to split it.",
   readAs:"Read as",probe:"Probe",undef:"undef.",
@@ -1816,8 +1865,8 @@ en:{
   playL:"Resume",
   
   greenOk2:"Both sides match, as Green’s theorem says",
-  greenBad2:"The sides differ: the region contains a singularity",lgDiv:"div F = ∂P/∂x + ∂Q/∂y",lgCurl:"curl F = ∂Q/∂x − ∂P/∂y",
-  capDiv:"Red flows out, blue flows in",capCurl:"Red turns ↺, blue turns ↻",only2d:"2D only",hDA:"Settings",capEdit:"Click to edit the field",capMore:"Show the magnitude scale and probe readings",capLess:"Hide the readings",feTitle:"Enter a new field (Enter to apply, Esc to cancel)",feApply:"Apply",feCancel:"Cancel",
+  greenBad2:"The sides differ: the region contains a singularity",lgDiv:"div F = ∂P/∂x + ∂Q/∂y",lgSeen:"as it turns on your screen",lgDivS:"div F",lgCurlS:"curl F",zeroDivS:"div F = 0 everywhere",zeroCurlS:"curl F = 0 everywhere",lgNegD:"sink",lgPosD:"source",lgNegC:"cw ↻",lgPosC:"↺ ccw",lgDiv3:"div F = ∂P/∂x + ∂Q/∂y + ∂R/∂z",lgCurl:"curl F = ∂Q/∂x − ∂P/∂y",
+  capDiv:"Red flows out, blue flows in",capCurl:"Red turns ↺, blue turns ↻",only2d:"2D only",curl3dSoon:"Only divergence in 3D for now: curl is a vector, and we are still working out how to draw it",hDA:"Settings",capEdit:"Click to edit the field",capMore:"Show the magnitude scale and probe readings",capLess:"Hide the readings",feTitle:"Enter a new field (Enter to apply, Esc to cancel)",feApply:"Apply",feCancel:"Cancel",
   tbDrL:"Display & analysis (parameters, style, background, particles, equilibria, nullclines…)",
   drClose:"Close",hDemo:"Demos",dmExit:"Exit demo",dmPrev:"Back",dmNext:"Next",dmPlay:"Play",dmStop:"Stop",dmLevel:"Grid",
   dmNote:"This field belongs to the demo. Exiting the demo brings back your own field.",
@@ -1880,28 +1929,28 @@ const PRESETS={
   ],
   "3d":[
     {id:"rotation-z",name:{zh:"绕 z 轴旋转",en:"Rotation about z"},f:["-y","x","0"],R:3,n:6,note:{zh:"每一层都是二维的旋转场，旋度 = (0, 0, 2)。",en:"Each layer is a 2D rotation field. Curl = (0, 0, 2)."},g:0},
-    {id:"helix",name:{zh:"螺旋上升",en:"Rising helix"},f:["-y","x","0.5"],R:3,n:5,note:{zh:"旋转再加一个向上的常量分量，流线是螺旋线。",en:"Rotation plus a constant upward part, so the streamlines are helices."},g:0,acts:[{k:"stream"}]},
+    {id:"helix",name:{zh:"螺旋上升",en:"Rising helix"},f:["-y","x","0.5"],R:3,n:6,note:{zh:"旋转再加一个向上的常量分量，流线是螺旋线。",en:"Rotation plus a constant upward part, so the streamlines are helices."},g:0,acts:[{k:"stream"}]},
     {id:"radial",name:{zh:"径向",en:"Radial"},f:["x","y","z"],R:3,n:6,note:{zh:"散度处处为 3，从原点向外发散。",en:"Divergence 3 everywhere, flowing out from the origin."},g:0},
-    {id:"sink",name:{zh:"汇",en:"Sink"},f:["-x","-y","-z"],R:3,n:6,note:{zh:"散度处处为 −3，全部流向原点。",en:"Divergence −3 everywhere, all flowing into the origin."},g:0},
+    {id:"sink",name:{zh:"汇",en:"Sink"},f:["-x","-y","-z"],R:3,speed:1.3,n:6,note:{zh:"散度处处为 −3，全部流向原点。",en:"Divergence −3 everywhere, all flowing into the origin."},g:0},
     {id:"grad-xyz",n:6,name:{zh:"∇(xyz)",en:"∇(xyz)"},f:["yz","xz","xy"],R:2,note:{zh:"f = xyz 的梯度场，所以旋度为 0。",en:"The gradient of f = xyz, so the curl is 0."},g:0},
-    {id:"charge-3d",name:{zh:"点电荷",en:"Point charge"},f:["x/r^3","y/r^3","z/r^3"],R:2.5,n:8,note:{zh:"点电荷的电场 E ∝ r̂/r²。除了原点，散度处处为 0；任何一个包住原点的闭曲面，穿出去的通量都一样（高斯定律）。",en:"The electric field of a point charge, E ∝ r̂/r². The divergence is 0 everywhere except the origin, so every closed surface around the origin has the same outward flux (Gauss's law)."},g:1},
-    {id:"magnetic-dipole",name:{zh:"磁偶极子",en:"Magnetic dipole"},f:["3 x z/r^5","3 y z/r^5","(3 z^2 - r^2)/r^5"],R:2,n:9,note:{zh:"小磁针、小电流环的磁场（磁矩沿 z 轴）。处处无散，场线从北极出来，绕一大圈回到南极。",en:"The field of a tiny bar magnet or current loop, with its moment along z. Divergence-free everywhere: field lines leave the north pole and loop round to the south."},g:1,acts:[{k:"stream"}]},
-    {id:"wire",name:{zh:"直导线的磁场",en:"Straight wire"},f:["-y/(x^2 + y^2)","x/(x^2 + y^2)","0"],R:2,n:7,note:{zh:"无限长直导线（沿 z 轴）电流的磁场：场线是绕导线的圆，大小按 1/r 衰减。导线外旋度处处为 0，可绕导线一圈的环量不为 0（安培定律）。",en:"The magnetic field of an infinite straight current along z: circles round the wire, falling off as 1/r. The curl is 0 off the wire, yet the circulation around it is not 0 (Ampère's law)."},g:1},
-    {id:"abc",name:{zh:"ABC 流",en:"ABC flow"},f:["sin(z) + cos(y)","sin(x) + cos(z)","sin(y) + cos(x)"],R:3.5,n:7,note:{zh:"流体力学里的经典无散场，它的旋度恰好等于它自己。",en:"A classic divergence-free field from fluid dynamics. Its curl equals itself."},g:2,acts:[{k:"stream"}]},
-    {id:"lorenz",name:{zh:"洛伦兹",en:"Lorenz"},f:["σ(y - x)","x(ρ - z) - y","x y - β z"],R:28,c3:[0,0,25],n:6,speed:6,params:{sigma:{v:10,min:0,max:20},rho:{v:28,min:0,max:50},beta:{v:8/3,min:0,max:6}},note:{zh:"洛伦兹系统：σ = 10、ρ = 28、β = 8/3 时，轨线落在著名的蝴蝶形奇怪吸引子上。把 ρ 降到 20 以下，轨线最后会停在两个平衡点上。",en:"The Lorenz system. With σ = 10, ρ = 28, β = 8/3 orbits settle onto the famous butterfly-shaped strange attractor. Lower ρ below about 20 and they end up resting at two fixed points."},g:2,acts:[{k:"stream"},{k:"ts"}]},
-    {id:"rossler",name:{zh:"Rössler",en:"Rössler"},f:["-y - z","x + a y","b + z(x - c)"],R:13,c3:[1,-1.5,11.5],n:6,speed:3,params:{a:{v:0.2,min:0,max:0.5},b:{v:0.2,min:0,max:2},c:{v:5.7,min:1,max:12}},note:{zh:"Rössler 吸引子：比洛伦兹更简单的混沌系统，只有一个非线性项 zx。轨线在 xy 平面里绕圈往外走，走远了被 z 方向抬起来，再折回中间。c 从 2 往上调，能看到周期倍增一路走到混沌。",en:"The Rössler attractor: a simpler chaotic system than Lorenz, with a single nonlinear term zx. Orbits spiral outward in the xy-plane until they are lifted in z and folded back to the middle. Raise c from 2 to watch period doubling lead into chaos."},g:2,acts:[{k:"stream"},{k:"ts"}]},
-    {id:"thomas",name:{zh:"Thomas",en:"Thomas"},f:["sin(y) - b x","sin(z) - b y","sin(x) - b z"],R:4.5,n:7,speed:4,params:{b:{v:0.208186,min:0,max:1.2}},note:{zh:"Thomas 吸引子：x → y → z 轮换以后式子不变。b 约 0.208 时是混沌的；b 再小就像在一格一格的晶格里随机游走，b 大于 1 时全部流向原点。",en:"Thomas' cyclically symmetric attractor: unchanged under x → y → z. Around b ≈ 0.208 it is chaotic; smaller b looks like a random walk through a lattice, and above b = 1 everything flows to the origin."},g:2,acts:[{k:"stream"}]},
-    {id:"aizawa",name:{zh:"Aizawa",en:"Aizawa"},f:["(z - b) x - d y","d x + (z - b) y","c + a z - z^3/3 - (x^2 + y^2)(1 + 0.25 z) + 0.1 z x^3"],R:1.65,c3:[0,0,0.75],n:6,speed:2,params:{a:{v:0.95,min:0,max:1.5},b:{v:0.7,min:0,max:1.5},c:{v:0.6,min:0,max:1.5},d:{v:3.5,min:0,max:6}},note:{zh:"Aizawa 吸引子：轨线绕着 z 轴转，铺在一个苹果形的曲面上，顺着中间的管子往上冲出去，再从外面绕回来。",en:"The Aizawa attractor: orbits wind round the z-axis over an apple-shaped surface, shoot up through the central tube and wrap back down the outside."},g:2,acts:[{k:"stream"}]},
-    {id:"halvorsen",name:{zh:"Halvorsen",en:"Halvorsen"},f:["-a x - 4 y - 4 z - y^2","-a y - 4 z - 4 x - z^2","-a z - 4 x - 4 y - x^2"],R:10,c3:[-2.9,-2.9,-2.9],n:6,speed:2.5,params:{a:{v:1.89,min:1,max:3}},note:{zh:"Halvorsen 吸引子：和 Thomas 一样是轮换对称的，三片叶子绕着对角线 x = y = z 一字排开。",en:"The Halvorsen attractor: cyclically symmetric like Thomas, with three lobes arranged round the diagonal x = y = z."},g:2,acts:[{k:"stream"}]}
+    {id:"charge-3d",name:{zh:"点电荷",en:"Point charge"},f:["x/r^3","y/r^3","z/r^3"],R:2.5,speed:2,n:7,note:{zh:"点电荷的电场 E ∝ r̂/r²。除了原点，散度处处为 0；任何一个包住原点的闭曲面，穿出去的通量都一样（高斯定律）。",en:"The electric field of a point charge, E ∝ r̂/r². The divergence is 0 everywhere except the origin, so every closed surface around the origin has the same outward flux (Gauss's law)."},g:1},
+    {id:"magnetic-dipole",name:{zh:"磁偶极子",en:"Magnetic dipole"},f:["3 x z/r^5","3 y z/r^5","(3 z^2 - r^2)/r^5"],R:2,speed:3,n:7,note:{zh:"小磁针、小电流环的磁场（磁矩沿 z 轴）。处处无散，场线从北极出来，绕一大圈回到南极。",en:"The field of a tiny bar magnet or current loop, with its moment along z. Divergence-free everywhere: field lines leave the north pole and loop round to the south."},g:1,acts:[{k:"stream"}]},
+    {id:"wire",name:{zh:"直导线的磁场",en:"Straight wire"},f:["-y/(x^2 + y^2)","x/(x^2 + y^2)","0"],R:2,speed:1.8,n:7,note:{zh:"无限长直导线（沿 z 轴）电流的磁场：场线是绕导线的圆，大小按 1/r 衰减。导线外旋度处处为 0，可绕导线一圈的环量不为 0（安培定律）。",en:"The magnetic field of an infinite straight current along z: circles round the wire, falling off as 1/r. The curl is 0 off the wire, yet the circulation around it is not 0 (Ampère's law)."},g:1},
+    {id:"abc",name:{zh:"ABC 流",en:"ABC flow"},f:["sin(z) + cos(y)","sin(x) + cos(z)","sin(y) + cos(x)"],R:3.5,speed:1.3,n:7,note:{zh:"流体力学里的经典无散场，它的旋度恰好等于它自己。",en:"A classic divergence-free field from fluid dynamics. Its curl equals itself."},g:2,acts:[{k:"stream"}]},
+    {id:"lorenz",name:{zh:"洛伦兹",en:"Lorenz"},f:["σ(y - x)","x(ρ - z) - y","x y - β z"],R:28,c3:[0,0,25],n:7,speed:2.2,params:{sigma:{v:10,min:0,max:20},rho:{v:28,min:0,max:50},beta:{v:8/3,min:0,max:6}},note:{zh:"洛伦兹系统：σ = 10、ρ = 28、β = 8/3 时，轨线落在著名的蝴蝶形奇怪吸引子上。把 ρ 降到 20 以下，轨线最后会停在两个平衡点上。",en:"The Lorenz system. With σ = 10, ρ = 28, β = 8/3 orbits settle onto the famous butterfly-shaped strange attractor. Lower ρ below about 20 and they end up resting at two fixed points."},g:2,acts:[{k:"stream"},{k:"ts"}]},
+    {id:"rossler",name:{zh:"Rössler",en:"Rössler"},f:["-y - z","x + a y","b + z(x - c)"],R:13,c3:[1,-1.5,11.5],n:7,speed:3,params:{a:{v:0.2,min:0,max:0.5},b:{v:0.2,min:0,max:2},c:{v:5.7,min:1,max:12}},note:{zh:"Rössler 吸引子：比洛伦兹更简单的混沌系统，只有一个非线性项 zx。轨线在 xy 平面里绕圈往外走，走远了被 z 方向抬起来，再折回中间。c 从 2 往上调，能看到周期倍增一路走到混沌。",en:"The Rössler attractor: a simpler chaotic system than Lorenz, with a single nonlinear term zx. Orbits spiral outward in the xy-plane until they are lifted in z and folded back to the middle. Raise c from 2 to watch period doubling lead into chaos."},g:2,acts:[{k:"stream"},{k:"ts"}]},
+    {id:"thomas",name:{zh:"Thomas",en:"Thomas"},f:["sin(y) - b x","sin(z) - b y","sin(x) - b z"],R:4.5,n:7,speed:2,params:{b:{v:0.208186,min:0,max:1.2}},note:{zh:"Thomas 吸引子：x → y → z 轮换以后式子不变。b 约 0.208 时是混沌的；b 再小就像在一格一格的晶格里随机游走，b 大于 1 时全部流向原点。",en:"Thomas' cyclically symmetric attractor: unchanged under x → y → z. Around b ≈ 0.208 it is chaotic; smaller b looks like a random walk through a lattice, and above b = 1 everything flows to the origin."},g:2,acts:[{k:"stream"}]},
+    {id:"aizawa",name:{zh:"Aizawa",en:"Aizawa"},f:["(z - b) x - d y","d x + (z - b) y","c + a z - z^3/3 - (x^2 + y^2)(1 + 0.25 z) + 0.1 z x^3"],R:1.65,c3:[0,0,0.75],n:7,speed:1.4,params:{a:{v:0.95,min:0,max:1.5},b:{v:0.7,min:0,max:1.5},c:{v:0.6,min:0,max:1.5},d:{v:3.5,min:0,max:6}},note:{zh:"Aizawa 吸引子：轨线绕着 z 轴转，铺在一个苹果形的曲面上，顺着中间的管子往上冲出去，再从外面绕回来。",en:"The Aizawa attractor: orbits wind round the z-axis over an apple-shaped surface, shoot up through the central tube and wrap back down the outside."},g:2,acts:[{k:"stream"}]},
+    {id:"halvorsen",name:{zh:"Halvorsen",en:"Halvorsen"},f:["-a x - 4 y - 4 z - y^2","-a y - 4 z - 4 x - z^2","-a z - 4 x - 4 y - x^2"],R:10,c3:[-2.9,-2.9,-2.9],n:7,speed:3,params:{a:{v:1.89,min:1,max:3}},note:{zh:"Halvorsen 吸引子：和 Thomas 一样是轮换对称的，三片叶子绕着对角线 x = y = z 一字排开。",en:"The Halvorsen attractor: cyclically symmetric like Thomas, with three lobes arranged round the diagonal x = y = z."},g:2,acts:[{k:"stream"}]}
   ]
 };
 /* 打开网页时默认的二维例子 */
 const DEF2=Math.max(0,PRESETS["2d"].findIndex(p=>p.id==="dipole"));
 const VIEWS=[
   {name:{zh:"斜视",en:"Oblique"},yaw:-2.3,pitch:0.45,rot:null},
-  {name:{zh:"俯视 xy",en:"Top xy"},yaw:0,pitch:Math.PI/2,rot:false},
-  {name:{zh:"正视 xz",en:"Front xz"},yaw:0,pitch:0,rot:false},
-  {name:{zh:"侧视 yz",en:"Side yz"},yaw:-Math.PI/2,pitch:0,rot:false}
+  {name:{zh:"俯视",en:"Top"},yaw:0,pitch:Math.PI/2,rot:false},
+  {name:{zh:"正视",en:"Front"},yaw:0,pitch:0,rot:false},
+  {name:{zh:"侧视",en:"Side"},yaw:-Math.PI/2,pitch:0,rot:false}
 ];
 /* 随机场的零件 */
 const RT={"2d":["x","y","x y","x^2 - y^2","sin(y)","cos(x)","sin(x + y)","x - x^3","y - y^3","sin(x y)","cos(y)","y^2","x^2","sin(x)cos(y)"],
@@ -1927,7 +1976,7 @@ const RMIN=0.1,RMAX=100;
 const PR=Object.create(null);
 const S={mode:"2d",R:3,c:{x:0,y:0},c3:[0,0,0],
   views:{"2d":{R:3,c:{x:0,y:0}},"3d":{R:3,c3:[0,0,0]}},
-  dens:{"2d":20,"3d":5},
+  dens:{"2d":20,"3d":7},
   L:{arrows:true,stream:false,particles:!reduce,sl:false,nullc:false,equil:true},
   normalize:false,bg:"none",speed:1,tool:"browse",
   src:{"2d":PRESETS["2d"][DEF2].f.slice(),"3d":PRESETS["3d"][1].f.slice()},
@@ -1996,6 +2045,31 @@ const DC=[0,0];
 function dc2(x,y){
   const fo=S.F.o,e=Math.max(1e-5,S.R*1e-4);let o=fo(x+e,y);const a=o[0],b=o[1];o=fo(x-e,y);const c=o[0],d=o[1];o=fo(x,y+e);const g=o[0],h=o[1];o=fo(x,y-e);
   DC[0]=(a-c+h-o[1])/(2*e);DC[1]=(b-d-g+o[0])/(2*e);return DC;
+}
+/* 同样的差分，步长自己给（用来分辨奇点旁边的差分误差） */
+const DCE=[0,0];
+function dc2e(x,y,e){const fo=S.F.o;let o=fo(x+e,y);const a=o[0],b=o[1];o=fo(x-e,y);const c=o[0],d=o[1];o=fo(x,y+e);const g=o[0],h=o[1];o=fo(x,y-e);DCE[0]=(a-c+h-o[1])/(2*e);DCE[1]=(b-d-g+o[0])/(2*e);return DCE}
+/* 三维的散度：中心差分，六次求值（步长可以自己给，用来分辨奇点旁边的差分误差） */
+function div3(x,y,z,e){const fo=S.F.o;e=e||Math.max(1e-5,S.R*1e-4);let o=fo(x+e,y,z);const a=o[0];o=fo(x-e,y,z);const b=o[0];o=fo(x,y+e,z);const c=o[1];o=fo(x,y-e,z);const d=o[1];o=fo(x,y,z+e);const g=o[2];o=fo(x,y,z-e);return(a-b+c-d+g-o[2])/(2*e)}
+/* 三维的散度“背景”：粒子按经过处的散度染色。先在格点上算一遍，定出颜色的刻度；处处为 0（或者只在奇点旁边有差分误差）就不染 */
+/* 三维的散度和旋度一起算：中心差分，六次求值，结果 [div, curlx, curly, curlz] 写进同一个数组 */
+const DC3=[0,0,0,0];
+function dc3(x,y,z,e){const fo=S.F.o;e=e||Math.max(1e-5,S.R*1e-4);let o=fo(x+e,y,z);const a0=o[0],a1=o[1],a2=o[2];o=fo(x-e,y,z);const b0=o[0],b1=o[1],b2=o[2];
+  o=fo(x,y+e,z);const c0=o[0],c1=o[1],c2=o[2];o=fo(x,y-e,z);const d0=o[0],d1=o[1],d2=o[2];o=fo(x,y,z+e);const g0=o[0],g1=o[1],g2=o[2];o=fo(x,y,z-e);const k=1/(2*e);
+  DC3[0]=(a0-b0+c1-d1+g2-o[2])*k;DC3[1]=(c2-d2-(g1-o[1]))*k;DC3[2]=(g0-o[0]-(a2-b2))*k;DC3[3]=(a1-b1-(c0-d0))*k;return DC3}
+/* 三维的散度、旋度“背景”：粒子按经过处的值染色。先在格点上算一遍定出颜色的刻度（旋度按向量的长短）；
+   处处为 0（或者只在奇点旁边有差分误差）就不染 */
+function div3Stats(){
+  S.div3Zero=false;S.curl3Zero=false;
+  if(S.mode!=="3d"||(S.bg!=="div"&&S.bg!=="curl")){S.div3s=0;S.curl3s=0;return}
+  if(S.div3F!==S.fver){S.div3F=S.fver;for(const p of P){p.dv=null;p.cv=null}}
+  const cu=S.bg==="curl",val=r=>cu?Math.hypot(r[1],r[2],r[3]):Math.abs(r[0]),v=[];let mx=0;
+  for(const a of A3){const q=val(dc3(a.x,a.y,a.z));a.dq=q;if(isFinite(q)){v.push(q);if(q>mx)mx=q}}
+  v.sort((p,q)=>p-q);const thr=1e-3*Math.max(S.mref,1e-9)/S.R,a90=v.length?v[Math.floor(0.9*(v.length-1))]:0;let zero=mx<thr;
+  if(!zero&&a90<thr){const e=Math.max(1e-5,S.R*1e-4);let left=0;for(const a of A3){const d=a.dq;if(!(d>=thr))continue;const d2=val(dc3(a.x,a.y,a.z,2*e)),d4=val(dc3(a.x,a.y,a.z,4*e)),tol=0.25*d;if(Math.abs(d2-d)<=tol&&Math.abs(d4-d)<=tol)left++}if(!left)zero=true}
+  /* 旋度染的是“朝着你的那个分量”，通常比旋度本身短，所以颜色刻度用旋度长短的中位数，不用 90% 分位数，免得大多数粒子几乎不染色 */
+  const a50=v.length?v[Math.floor(0.5*(v.length-1))]:0,sc=zero?0:Math.max(cu?a50:a90,thr);
+  if(cu){S.curl3Zero=zero;S.curl3s=sc;S.div3s=0}else{S.div3Zero=zero;S.div3s=sc;S.curl3s=0}
 }
 /* 雅可比矩阵 J[i][j] = ∂F_i/∂x_j，用中心差分 */
 function jac(x,y,z){
@@ -2226,9 +2300,39 @@ function sample2D0(Rnow){
 function lodWf(){const tg=2*S.R/S.dens["2d"],u=Math.log2(tg)-(S.lodF==null?Math.floor(Math.log2(tg)):S.lodF);return u>=1?0:u<=0?1:(Math.pow(4,1-u)-1)/3}
 /* 背景着色：每个小块用 dc2 求值，Float32Array 原生排序，透明度查表（原来每块都新建矩阵、用比较函数排序） */
 const HLUT=new Float32Array(257);for(let i=0;i<=256;i++)HLUT[i]=Math.pow(i/256,0.75);
-function computeHeat(){return withRV(computeHeat0)}
+function computeHeat(){const r=withRV(computeHeat0);bgStore();updateBgNote();return r}
+/* 背景切换的动画：散度、旋度各留一张自己的图和一个当前透明度，透明度朝“开”或“关”匀速走（约 0.35 秒），
+   中途再切换就从现在的透明度接着走（和“画法”的切换一样可以打断）；新的一张图算好之前，旧的先不淡出，免得中间变暗一下。
+   箭头、流线的颜色也跟着背景的多少，在彩色和单色之间连续过渡 */
+const BGF={div:{w:0,cv:document.createElement("canvas"),rect:null,fv:null},curl:{w:0,cv:document.createElement("canvas"),rect:null,fv:null}};
+let BGM=0;var BG3={w:0,wc:0,m:0};
+function bgStore(){
+  const k=S.bg;if(k==="none"||!BGF[k]||!S.heatRect)return;const L=BGF[k],c=L.cv;
+  if(c.width!==heat.width||c.height!==heat.height){c.width=heat.width;c.height=heat.height}
+  if(L.rect&&L.sig&&L.sig!==S.fsig&&L.w>0.01&&!reduce&&SM.ready){
+    const o=L.old||(L.old={cv:document.createElement("canvas"),a:0});o.cv.width=c.width;o.cv.height=c.height;o.cv.getContext("2d").drawImage(c,0,0);o.rect=L.rect.slice();o.a=1;
+  }
+  const x=c.getContext("2d");x.clearRect(0,0,c.width,c.height);if(S.heatScale)x.drawImage(heat,0,0);
+  L.rect=S.heatRect.slice();L.fv=S.fver;L.sig=S.fsig;
+}
+function bgStep(dt){
+  {const go=(w,t)=>reduce||!SM.ready?t:t>w?Math.min(1,w+dt/0.35):Math.max(0,w-dt/0.35);
+   const td=S.mode==="3d"&&S.bg==="div"&&S.div3s>0?1:0,tc=S.mode==="3d"&&S.bg==="curl"&&S.curl3s>0?1:0;
+   if(BG3.w!==td){BG3.w=go(BG3.w,td);dirty=true}if(BG3.wc!==tc){BG3.wc=go(BG3.wc,tc);dirty=true}
+   const tm=S.mode==="3d"&&(S.bg==="div"||S.bg==="curl")?1:0;if(BG3.m!==tm){BG3.m=go(BG3.m,tm);dirty=true}}
+  const want=S.mode==="2d"&&S.bg!=="none"?S.bg:null;if(want&&BGF[want]&&BGF[want].fv!==S.fver)return;
+  const inst=reduce||!SM.ready||S.mode!=="2d";let ch=false;
+  for(const k of["div","curl"]){const L=BGF[k],tg=want===k?1:0;if(L.old&&L.old.a>0){L.old.a=inst?0:Math.max(0,L.old.a-dt/0.35);ch=true}if(L.w===tg)continue;
+    L.w=inst?tg:tg>L.w?Math.min(tg,L.w+dt/0.35):Math.max(tg,L.w-dt/0.35);ch=true}
+  if(ch){redrawPD=true;if(!G2.ok)dirty=true}
+}
+const bgS=x=>x<=0?0:x>=1?1:x*x*(3-2*x);
+function bgMono(){return Math.min(1,bgS(BGF.div.w)+bgS(BGF.curl.w))}
+/* 箭头、流线的颜色：按大小取的彩色和背景打开时用的单色之间，按背景现在的多少混合 */
+function bgCol(t,inkA){const m=BGM,c=g2cm(t,1);if(m<=0)return c;const ink=g2c("rgb("+T.inkRgb+")",inkA);if(m>=1)return ink;
+  return[c[0]+(ink[0]-c[0])*m,c[1]+(ink[1]-c[1])*m,c[2]+(ink[2]-c[2])*m,1+(inkA-1)*m]}
 function computeHeat0(){
-  S.heatScale=0;if(S.bg==="none")return;
+  S.heatScale=0;S.heatZero=false;S.heatSing=false;if(S.bg==="none")return;
   /* 用小步长的差分，奇点附近也不会把截断误差画成颜色 */
   const v=V,px=(S.heatFast?2:1)*((WD||W)*(HD||H)>500000?6:5),gw=Math.ceil(W/px),gh=Math.ceil(H/px),n=gw*gh,st=px/v.sc,k0=S.bg==="div"?0:1;
   if(heat.width!==gw||heat.height!==gh){heat.width=gw;heat.height=gh}
@@ -2237,9 +2341,21 @@ function computeHeat0(){
     const val=dc2(v.xmin+(i+0.5)*st,y)[k0],k=j*gw+i;
     if(isFinite(val)){vals[k]=val;abs[na++]=Math.abs(val)}else vals[k]=NaN;
   }}
-  const A=abs.subarray(0,na).sort(),mx=na?A[na-1]:0,thr=1e-3*Math.max(S.mref,1e-9)/S.R;
-  let sc=mx<thr?0:Math.max(A[Math.floor(0.95*(na-1))],thr);const hk=S.fver+"|"+S.R+"|"+S.bg;
-  if(S.heatK===hk&&S.heatSc>0)sc=S.heatSc;else{S.heatK=hk;S.heatSc=sc}
+  const A=abs.subarray(0,na).sort(),mx=na?A[na-1]:0,thr=1e-3*Math.max(S.mref,1e-9)/S.R,a95=na?A[Math.floor(0.95*(na-1))]:0;
+  /* 处处为 0：最大值都在门限以下。或者几乎处处为 0，剩下那几块只是场冲到无穷大的点（点电荷、点涡、偶极子、圆柱里面）旁边的差分误差：
+     换两个差分步长再算一遍，真的散度、旋度几乎不变，误差会差得很远。是误差的就当 0，全是误差就整张当成空的，
+     这样奇点周围不会再画出一团假的颜色 */
+  let zero=mx<thr,sing=false;
+  if(!zero&&a95<thr){
+    const e=Math.max(1e-5,S.R*1e-4);let left=0;
+    for(let k=0;k<n;k++){const val=vals[k];if(!(Math.abs(val)>=thr))continue;
+      const x=v.xmin+(k%gw+0.5)*st,y=v.ymax-(((k/gw)|0)+0.5)*st,w2=dc2e(x,y,2*e)[k0],w4=dc2e(x,y,4*e)[k0],tol=0.25*Math.abs(val);
+      if(!(Math.abs(w2-val)<=tol&&Math.abs(w4-val)<=tol))vals[k]=0;else left++}
+    if(!left){zero=true;sing=true}
+  }
+  S.heatZero=zero;S.heatSing=sing;
+  let sc=zero?0:Math.max(a95,thr);const hk=S.fver+"|"+S.R+"|"+S.bg;
+  if(zero){S.heatK=hk;S.heatSc=0}else if(S.heatK===hk&&S.heatSc>0)sc=S.heatSc;else{S.heatK=hk;S.heatSc=sc}
   S.heatScale=sc;
   const img=hctx.createImageData(gw,gh),d=img.data,PC=T.pos,NC=T.neg,ha=T.heatA;
   if(sc)for(let k=0;k<n;k++){
@@ -2267,7 +2383,9 @@ function drawBase2D0(){
   for(let k=Math.ceil(v.ymin/step);k*step<=v.ymax;k++){if(!k)continue;const py=Math.round(Y(k*step))+0.5;c.moveTo(0,py);c.lineTo(W,py)}
   c.stroke();
   /* 背景着色盖在网格上面，网格透出来但不会压在颜色上 */
-  if(S.bg!=="none"&&S.heatScale&&S.heatRect){const q=S.heatRect;c.imageSmoothingEnabled=true;c.drawImage(heat,X(q[0]),Y(q[1]),q[2]*v.sc,q[3]*v.sc)}
+  c.imageSmoothingEnabled=true;for(const k of["div","curl"]){const L=BGF[k],al=bgS(L.w),oa=L.old?bgS(L.old.a):0;if(!(al>0.002))continue;
+    if(oa>0.002&&L.old.rect){const q=L.old.rect;c.globalAlpha=al*oa;c.drawImage(L.old.cv,X(q[0]),Y(q[1]),q[2]*v.sc,q[3]*v.sc)}
+    if(L.rect){const q=L.rect;c.globalAlpha=al*(1-oa);c.drawImage(L.cv,X(q[0]),Y(q[1]),q[2]*v.sc,q[3]*v.sc)}}c.globalAlpha=1;
   const ax=Y(0),ay=X(0),axOn=ax>=0&&ax<=H,ayOn=ay>=0&&ay<=W;
   c.strokeStyle=T.axis;c.beginPath();
   if(axOn){c.moveTo(0,Math.round(ax)+0.5);c.lineTo(W,Math.round(ax)+0.5)}
@@ -2311,11 +2429,11 @@ function drawLabels2D(c){
 function drawArrows2D(){return withRV(drawArrows2D0)}
 function drawArrows2D0(){
   /* 箭头按颜色分 24 档，一档一次画完：几千次换颜色、描边变成几十次 */
-  const v=V,cellPx=S.cell*v.sc,maxL=cellPx*0.84,head=clamp(cellPx*0.32,4,8.5),mono=S.bg!=="none",NB=mono?1:24,sh=[],hd=[],col=[];
+  const v=V,cellPx=S.cell*v.sc,maxL=cellPx*0.84,head=clamp(cellPx*0.32,4,8.5),mono=bgMono()>=0.5,NB=mono?1:24,sh=[],hd=[],col=[];
   for(let b=0;b<NB;b++){sh.push(new Path2D());hd.push(new Path2D());col.push(mono?"rgba("+T.inkRgb+",.78)":"rgb("+cmap((b+0.5)/NB).join(",")+")")}
   const wfC=lodWf();
   for(const a of A2){
-    const w=a.c===false?wfC:1;if(w<0.2)continue;const r=a.m/(S.amref||S.mref),L=a.m<1e-12?0:(S.normalize?maxL:maxL*Math.min(1,r))*w,bi=mono?0:Math.min(NB-1,Math.floor(Math.min(1,r)*NB));
+    const w=a.c===false?wfC:1;if(w<0.2)continue;const r=a.m/(S.amref||S.mref),L=a.m<1e-12?0:maxL*nmL(r)*w,bi=mono?0:Math.min(NB-1,Math.floor(Math.min(1,r)*NB));
     const px=sx2(a.x),py=sy2(a.y),ux=a.m?a.vx/a.m:0,uy=a.m?-a.vy/a.m:0;
     arrowP(sh[bi],hd[bi],px-ux*L/2,py-uy*L/2,px+ux*L/2,py+uy*L/2,head);
   }
@@ -2362,12 +2480,12 @@ function trimTrail(p,stride,old,keep1){
   if(s>32*stride){for(let i=s;i<n;i++)h[i-s]=h[i];h.length=n-s;s=0}
   p.s=s;
 }
-function spawn2D(p){const v=V;p.x=rand(v.xmin,v.xmax);p.y=rand(v.ymin,v.ymax);p.age=0;p.life=2+Math.random()*4;p.dead=false;
+function spawn2D(p){const v=V;p.x=rand(v.xmin,v.xmax);p.y=rand(v.ymin,v.ymax);p.age=0;p.life=2+Math.random()*4;p.dead=false;p.born=performance.now();
   if(p.h)p.h.length=0;else p.h=[];p.s=0;p.h.push(p.x,p.y,PF);return p}
 function spawn3D(p){
   /* 在坐标盒子里均匀撒点 */
   const R=S.R,C=S.c3;
-  if(p.h)p.h.length=0;else p.h=[];p.s=0;p.h.push(C[0]+rand(-1,1)*R,C[1]+rand(-1,1)*R,C[2]+rand(-1,1)*R,PF);p.age=0;p.life=3+Math.random()*4;return p;
+  if(p.h)p.h.length=0;else p.h=[];p.s=0;p.h.push(C[0]+rand(-1,1)*R,C[1]+rand(-1,1)*R,C[2]+rand(-1,1)*R,PF);p.age=0;p.life=3+Math.random()*4;p.dv=null;p.cv=null;return p;
 }
 /* 新粒子先“预走”一段，出现时就带着完整的尾迹，不会一片片慢慢长出来 */
 function warm2D(p,steps){
@@ -2388,7 +2506,7 @@ function initParticles(){
    浏览器省电模式把画面锁在 30 帧时（间隔很整齐地停在 33ms 左右），不算卡，不降档 */
 const QL=[{n:1,pd:1.5,cd:2},{n:0.78,pd:1.25,cd:2},{n:0.58,pd:1,cd:2},{n:0.42,pd:1,cd:1.25}];
 let qLevel=0,qT=0,qGood=0;const FT=[];
-function partCount(){return S.mode==="2d"?Math.round(clamp(W*H/380,250,1600)*QL[qLevel].n):Math.round(300*QL[qLevel].n)}
+function partCount(){return S.mode==="2d"?Math.round(clamp(W*H/380,250,1600)*QL[qLevel].n):Math.round(clamp(W*H/650,300,900)*QL[qLevel].n)}
 function adjustParticles(){
   const n=partCount();
   if(P.length>n)P.length=n;
@@ -2406,13 +2524,19 @@ function govern(ms,now){
 function setQ(l,now){qLevel=l;qT=now;qGood=0;FT.length=0;resize(true);adjustParticles();dirty=true}
 /* 视图变了（缩放、平移）就按面积把粒子重新铺匀：
    重叠区里的粒子按“旧面积 / 新面积”的比例留下，其余的挪到新露出来的区域。 */
+/* 缩放时留下来的粒子：尾巴绕着粒子头按缩放比例伸缩，在屏幕上的长度保持不变（不会缩小时全挤成小点、放大时拉成长线） */
+function trailScale(p,f,st){
+  if(!(Math.abs(f-1)>1e-9)||!p.h)return;const h=p.h,n=h.length;if(n-p.s<2*st)return;
+  const hx=h[n-st],hy=h[n-st+1],hz=st===4?h[n-st+2]:0;
+  for(let j=p.s;j<n-st;j+=st){h[j]=hx+(h[j]-hx)*f;h[j+1]=hy+(h[j+1]-hy)*f;if(st===4)h[j+2]=hz+(h[j+2]-hz)*f}
+}
 function redistribute(o,n){
   if(S.mode!=="2d"||!P.length)return;
   const ix0=Math.max(o.xmin,n.xmin),ix1=Math.min(o.xmax,n.xmax),iy0=Math.max(o.ymin,n.ymin),iy1=Math.min(o.ymax,n.ymax);
   const AO=(o.xmax-o.xmin)*(o.ymax-o.ymin),AN=(n.xmax-n.xmin)*(n.ymax-n.ymin),AI=Math.max(0,ix1-ix0)*Math.max(0,iy1-iy0);
   if(!(AN>0)||!(AO>0))return;
   const mo=0.05*(o.xmax-o.xmin),mn=0.05*(n.xmax-n.xmin),inR=(p,x0,x1,y0,y1)=>p.x>=x0&&p.x<=x1&&p.y>=y0&&p.y<=y1;
-  const keep=Math.min(1,AO/AN),ring=AN>=AO*(1-1e-9)&&AI>0&&AN-AI>AN*1e-6,hN=n.ymax-n.ymin;
+  const keep=Math.min(1,AO/AN),ring=AN>=AO*(1-1e-9)&&AI>0&&AN-AI>AN*1e-6,hN=n.ymax-n.ymin,zf=(n.xmax-n.xmin)/(o.xmax-o.xmin);
   const wL=AI>0?Math.max(0,ix0-n.xmin)*hN:0,wR=AI>0?Math.max(0,n.xmax-ix1)*hN:0,
         wB=AI>0?Math.max(0,ix1-ix0)*Math.max(0,iy0-n.ymin):0,wT=AI>0?Math.max(0,ix1-ix0)*Math.max(0,n.ymax-iy1):0,wS=wL+wR+wB+wT;
   const place=p=>{
@@ -2429,8 +2553,8 @@ function redistribute(o,n){
     const inN=inR(p,n.xmin,n.xmax,n.ymin,n.ymax),inNm=inR(p,n.xmin-mn,n.xmax+mn,n.ymin-mn,n.ymax+mn),
           inO=inR(p,o.xmin,o.xmax,o.ymin,o.ymax),inOm=inR(p,o.xmin-mo,o.xmax+mo,o.ymin-mo,o.ymax+mo);
     const cand=(inN&&inOm)||(inNm&&!inN&&inOm&&!inO);
-    if(cand&&(keep>=1||Math.random()<keep))continue;
-    place(p);p.life=2+Math.random()*4;p.age=Math.random()*p.life*0.6;p.dead=false;warm2D(p,S.viewBusy?4:0);
+    if(cand&&(keep>=1||Math.random()<keep)){trailScale(p,zf,3);continue}
+    place(p);p.life=2+Math.random()*4;p.age=Math.random()*p.life*0.6;p.dead=false;warm2D(p);p.born=performance.now();
   }
 }
 /* 粒子推进：按 dx/dt = k·F 走 dt 秒（k 让典型大小的 |F| 每秒走 0.22R，太快的地方封顶 vmax）。
@@ -2461,11 +2585,12 @@ function rk4u(x,y,z,k1x,k1y,k1z,h){
   NX=x+h/6*(k1x+2*k2x+2*k3x+k4x);NY=y+h/6*(k1y+2*k2y+2*k3y+k4y);NZ=z+h/6*(k1z+2*k2z+2*k3z+k4z);NCOS=c;return true;
 }
 function advP(q,dt,hmax,out,tag){
-  const k=flowK(),vmax=1.2*S.R*Math.max(1,S.speed),hmin=hmax/32,two=S.mode==="2d",n0=out.length;
+  /* 粒子的速度按场的大小开平方：弱的地方（离电荷、涡、导线远的地方）也看得出在动，强的地方仍然更快（上限不变） */
+  const two=S.mode==="2d",k=flowK()*(two?1:1.5),mr=Math.max(S.mrefF||S.mref,1e-12),vmax=1.2*S.R*Math.max(1,S.speed),hmin=hmax/32,n0=out.length;
   let x=q[0],y=q[1],z=q[2],tau=dt,hc=hmax,have=false,k1x=0,k1y=0,k1z=0,k1m=0;
   for(let it=0;it<32&&tau>0;it++){
     if(!have){const r=udir(x,y,z);if(r<0)return false;if(r===0)break;k1x=UX;k1y=UY;k1z=UZ;k1m=UM;have=true}
-    const s=Math.min(k1m*k,vmax),lim=s*tau,h=Math.min(hc,lim);
+    const s=Math.min(k*Math.sqrt(k1m*mr),vmax),lim=s*tau,h=Math.min(hc,lim);
     if(!(h>hmin*1e-3))break;
     if(!rk4u(x,y,z,k1x,k1y,k1z,h)){if(h<=hmin)return false;hc=h/2;continue}
     x=NX;y=NY;z=NZ;have=false;tau=h>=lim?0:tau-h/s;
@@ -2614,7 +2739,7 @@ function stJobStep(){
 }
 function drawStream2D(c,st,al){
   if(!st||!st.lines.length||!(al>0))return;
-  const NB=7,mono=S.bg!=="none";let sh=null;
+  const NB=7,mono=bgMono()>=0.5;let sh=null;
   if(st._vv!==S.vv&&!(st._c&&(sh=vshift(st._tg)))){
     const bins=[];for(let b=0;b<NB;b++)bins.push(new Path2D());const heads=[],every=Math.max(90,st.dsep*4.5);
     for(const L of st.lines){
@@ -2766,6 +2891,7 @@ function computeSep3(){
   const step=(p,hh)=>{const a=dl(p);if(!a)return null;const b=dl([p[0]+a[0]*hh/2,p[1]+a[1]*hh/2,p[2]+a[2]*hh/2]);if(!b)return null;
     const c=dl([p[0]+b[0]*hh/2,p[1]+b[1]*hh/2,p[2]+b[2]*hh/2]);if(!c)return null;const d=dl([p[0]+c[0]*hh,p[1]+c[1]*hh,p[2]+c[2]*hh]);if(!d)return null;
     return[0,1,2].map(k=>p[k]+hh/6*(a[k]+2*b[k]+2*c[k]+d[k]))};
+  const near3=eqNear(S.eq,R*0.1,true);
   for(const q of S.eq.filter(e=>e.type==="saddle"&&e.z!==undefined).slice(0,6)){
     const J=jac(q.x,q.y,q.z),ev=q.ev||eig3(J),nJ=J.flat().reduce((s,v)=>s+Math.abs(v),0)||1,e0=1e-6*nJ;
     const up=ev.filter(e=>e.re>e0),dn=ev.filter(e=>e.re<-e0);
@@ -2777,10 +2903,10 @@ function computeSep3(){
       for(const sg of[1,-1]){
         let p=[q.x+sg*eps*v[0],q.y+sg*eps*v[1],q.z+sg*eps*v[2]];const pts=[[q.x,q.y,q.z],p];let far=0,len=0,capped=true,wind=false,back=-1,inLen=0;
         for(let i=0;i<2600;i++){
-          const nx=step(p,h*dir);if(!nx){capped=false;break}pts.push(nx);p=nx;if(!inBox(nx,2)){capped=false;break}
+          const nx=step(p,h*dir);if(!nx){capped=false;break}const mv=Math.hypot(nx[0]-p[0],nx[1]-p[1],nx[2]-p[2]);pts.push(nx);p=nx;if(!inBox(nx,2)){capped=false;break}if(mv<Math.abs(h)*0.2){capped=false;break}
           len+=h;if(len>16*R)break;
           /* 走进别的平衡点身边 0.1R 以内就停：再走下去就是绕着它一圈圈慢慢往外转（Lorenz 两个中心那两团白色就是这么来的） */
-          if(i>8&&S.eq.some(o=>o!==q&&o.z!==undefined&&Math.hypot(o.x-nx[0],o.y-nx[1],o.z-nx[2])<R*0.1)){capped=false;break}
+          if(i>8&&near3(q,nx[0],nx[1],nx[2])){capped=false;break}
           const dq=Math.hypot(nx[0]-q.x,nx[1]-q.y,nx[2]-q.z);if(dq>far)far=dq;
           if(i>30&&dq<eps*1.5){capped=false;break}
           if(dir<0){
@@ -2868,6 +2994,17 @@ function drawEqTag(c){
 
 /* ================= 鞍点分界线：沿特征向量出发积分（稳定流形倒着积） ================= */
 function computeSep(){return withRV(computeSep0)}
+/* 分界线积分时判断“是不是走到了别的平衡点旁边”：先把平衡点按边长 r 的小格子分好桶，每一步只看附近几格。
+   原来每一步都把所有平衡点挨个算一遍距离；平衡点一多（比如把梯度场缩小到很大的范围，画面里有成千上万个平衡点），
+   一次就要算上亿次，画面会卡住好几秒 */
+function eqNear(list,r,three){
+  const inv=1/r,H=new Map(),key=(i,j,k)=>(i*73856093)^(j*19349663)^(k*83492791);
+  for(const o of list){if(three!==(o.z!==undefined))continue;const i=Math.floor(o.x*inv),j=Math.floor(o.y*inv),k=three?Math.floor(o.z*inv):0,h=key(i,j,k);let a=H.get(h);if(!a)H.set(h,a=[]);a.push(o)}
+  return(q,x,y,z)=>{const i=Math.floor(x*inv),j=Math.floor(y*inv),k=three?Math.floor(z*inv):0,kz=three?1:0;
+    for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(let c=-kz;c<=kz;c++){const L=H.get(key(i+a,j+b,k+c));if(!L)continue;
+      for(const o of L){if(o===q)continue;if((three?Math.hypot(o.x-x,o.y-y,o.z-z):Math.hypot(o.x-x,o.y-y))<r)return true}}
+    return false};
+}
 function computeSep0(){
   if(!S.L.sep&&REV.sep.u>0&&S.sep)return;
   S.sep=null;if(!S.L.sep||!S.F||!W)return;if(S.mode==="3d"){computeSep3();return}
@@ -2877,6 +3014,7 @@ function computeSep0(){
   const step=(p,hh)=>{const a=dl(p[0],p[1]);if(!a)return null;const b=dl(p[0]+a[0]*hh/2,p[1]+a[1]*hh/2);if(!b)return null;
     const c=dl(p[0]+b[0]*hh/2,p[1]+b[1]*hh/2);if(!c)return null;const d=dl(p[0]+c[0]*hh,p[1]+c[1]*hh);if(!d)return null;
     return[p[0]+hh/6*(a[0]+2*b[0]+2*c[0]+d[0]),p[1]+hh/6*(a[1]+2*b[1]+2*c[1]+d[1])]};
+  const near=eqNear(S.eq,eps*2,false);
   for(const q of S.eq.filter(e=>e.type==="saddle").slice(0,8)){
     const J=jac(q.x,q.y,0),a=J[0][0],b=J[0][1],c=J[1][0],d=J[1][1],tr=a+d,det=a*d-b*c,disc=tr*tr-4*det;if(!(disc>0))continue;
     const s=Math.sqrt(disc);
@@ -2886,8 +3024,8 @@ function computeSep0(){
       for(const sg of[1,-1]){
         let p=[q.x+sg*eps*ev[0],q.y+sg*eps*ev[1]];const pts=[[q.x,q.y],p];
         for(let i=0;i<4500;i++){
-          const nx=step(p,h*dir);if(!nx)break;pts.push(nx);p=nx;if(!inside(nx))break;
-          if(i>8&&S.eq.some(o=>o!==q&&Math.hypot(o.x-nx[0],o.y-nx[1])<eps*2))break;
+          const nx=step(p,h*dir);if(!nx)break;const mv=Math.hypot(nx[0]-p[0],nx[1]-p[1]);pts.push(nx);p=nx;if(!inside(nx)||mv<Math.abs(h)*0.2)break;
+          if(i>8&&near(q,nx[0],nx[1],0))break;
           if(i>30&&Math.hypot(nx[0]-q.x,nx[1]-q.y)<eps*1.5)break;
         }
         if(dir<0)pts.reverse();
@@ -3275,36 +3413,36 @@ const g2c=(s,a)=>{const k=s+"|"+a;let c=G2.cols[k];if(!c){const m=String(s).trim
 const g2cm=(t,a)=>{const c=cmap(t);return[c[0]/255,c[1]/255,c[2]/255,a]};
 /* 数据有变化才重新上传 */
 function g2Sync(){
-  const g=G2,s=g.src,mono=S.bg!=="none",O=[S.c.x,S.c.y];
+  const g=G2,s=g.src,mw=bgMono(),O=[S.c.x,S.c.y];BGM=mw;
   /* 箭头 */
   const wf=lodWf();S.cell=2*S.R/S.dens["2d"];
-  const ak=[S.cell,S.amref,S.normalize,mono,Math.round(wf*400)].join("|");
+  const ak=[S.cell,S.amref,Math.round((S.nmv||0)*1000),Math.round(mw*200),Math.round(wf*400)].join("|");
   let morphed=false;
   if(MORPH&&MORPH.mode==="2d"){
     if(A2!==MORPH.old){const e=morphE();if(MORPH){const it=morphItems2(e);if(it){g2FillGlyphs(g.arr,it,O);g.arr.cov=null;s.a=null;morphed=true}}else s.a=null}
     else if(performance.now()-MORPH.born>800)MORPH=null;else morphed=true;
   }
   if(!morphed&&(s.a!==A2||s.ak!==ak)){
-    const it=[],maxL=S.cell*0.84,ink=mono?g2c("rgb("+T.inkRgb+")",0.78):null;
-    for(const a of A2){const w=a.c===false?wf:1;if(!(a.m>1e-12)||w<0.01)continue;const r=a.m/S.amref,L=(S.normalize?maxL:maxL*Math.min(1,r))*w,c=ink||g2cm(Math.min(1,r),1);it.push([a.x,a.y,a.vx/a.m,a.vy/a.m,L,c[0],c[1],c[2],c[3]*w])}
+    const it=[],maxL=S.cell*0.84;
+    for(const a of A2){const w=a.c===false?wf:1;if(!(a.m>1e-12)||w<0.01)continue;const r=a.m/S.amref,L=maxL*nmL(r)*w,c=bgCol(Math.min(1,r),0.78);it.push([a.x,a.y,a.vx/a.m,a.vy/a.m,L,c[0],c[1],c[2],c[3]*w])}
     g2FillGlyphs(g.arr,it,O);g.arr.cov=S.a2cov||null;s.a=A2;s.ak=ak;s.acov=S.a2cov;
   }
   /* 流线图（重算后旧的淡出、新的淡入；旧的没覆盖到的地方新的直接全亮，不会一块浓一块淡） */
-  const stk=[S.mref,mono].join("|");
+  const stk=[S.mref,Math.round(mw*200)].join("|");
   if(s.st!==S.st||s.stk!==stk){
     if(STF&&STF.old&&s.st===STF.old){let t=g.st;g.st=g.stO;g.stO=t;t=g.stH;g.stH=g.stHO;g.stHO=t;g.stO.cov=g.stHO.cov=STF.old.cov||null}
     else if(!STF||!STF.old){g.stO.n=0;g.stHO.n=0}
     const st=S.st;
     if(st&&st.lines.length){
-      const ink=mono?g2c("rgb("+T.inkRgb+")",0.7):null,inkH=mono?g2c("rgb("+T.inkRgb+")",0.8):null,lines=[];
-      for(const L of st.lines){const cs=new Array(L.length);for(let k=0;k<L.length;k++)cs[k]=ink||g2cm(Math.min(1,L[k][2]/S.mref),1);lines.push({p:L,cs})}
+      const lines=[];
+      for(const L of st.lines){const cs=new Array(L.length);for(let k=0;k<L.length;k++)cs[k]=bgCol(Math.min(1,L[k][2]/S.mref),0.7);lines.push({p:L,cs})}
       g2FillLines(g.st,lines,O);g.st.cov=st.cov||null;
       const sc=st.sc||V.sc,every=Math.max(90,st.dsep*4.5),paths=st.lines;
       /* 箭头放在“离种子点的弧长 = 半格 + 整数格”的地方：线往两头接长、被裁短时，留下来的箭头位置都不变 */
       const sa=st.sa||[],m0=Math.min(every*0.5,st.dsep*1.6);
       const hs=g2Heads(paths,sc,every,(P,idx)=>{let tot=0;for(let k=1;k<P.length;k++)tot+=Math.hypot(P[k][0]-P[k-1][0],P[k][1]-P[k-1][1])*sc;if(tot<every*1.4)return -tot/2;
         const Ls=sa[idx];if(Ls===undefined)return -m0;
-        return -(Ls+every/2+Math.ceil((m0-Ls-every/2)/every)*every)},p=>inkH||g2cm(Math.min(1,p[2]/S.mref),1));
+        return -(Ls+every/2+Math.ceil((m0-Ls-every/2)/every)*every)},p=>bgCol(Math.min(1,p[2]/S.mref),0.8));
       g2FillGlyphs(g.stH,hs,O);g.stH.cov=st.cov||null;g.stHs=clamp(st.dsep*0.3,5,9);
     }else{g.st.n=0;g.stH.n=0}
     s.st=S.st;s.stk=stk;
@@ -3350,14 +3488,15 @@ function g2Particles(){
   let nv=0;for(const p of P){const h=p.h;if(h)nv+=2*((h.length-p.s)/3|0)}
   if(!o.F||o.F.length<nv*12)o.F=new Float32Array(Math.ceil(nv*12*1.3)+12);
   if(!o.I||o.I.length<nv*3)o.I=new Uint32Array(Math.ceil(nv*3*1.3)+6);
-  const F=o.F,I=o.I,lim=2.2/sc;let v=0,i=0;const tmp=g.tmp||(g.tmp=[]);
+  const F=o.F,I=o.I,lim=2.2/sc,now=performance.now();let v=0,i=0;const tmp=g.tmp||(g.tmp=[]);
   for(const p of P){
     const h=p.h,len=h?h.length:0,s=p.s;if(len-s<6)continue;
+    let fi=1;if(p.born){const u=(now-p.born)/350;if(u<1)fi=u<=0?0:u*u*(3-2*u)}
     tmp.length=0;let lx=h[s],ly=h[s+1];tmp.push(s);
     for(let j=s+3;j<len;j+=3){const qx=h[j],qy=h[j+1];if(j<len-3&&(qx-lx)*(qx-lx)+(qy-ly)*(qy-ly)<lim*lim)continue;tmp.push(j);lx=qx;ly=qy}
     const n=tmp.length;if(n<2)continue;
     for(let k=0;k<n;k++){
-      const j=tmp[k],jq=tmp[k>0?k-1:0],jr=tmp[k<n-1?k+1:n-1],age=Math.min(1,(PF-h[j+2])/PH),al=pa*(0.16+0.84*(1-age));
+      const j=tmp[k],jq=tmp[k>0?k-1:0],jr=tmp[k<n-1?k+1:n-1],age=Math.min(1,(PF-h[j+2])/PH),al=pa*(0.24+0.76*(1-age))*fi;
       for(let sd=-1;sd<=1;sd+=2){const b=v*12;F[b]=h[j]-ox;F[b+1]=h[j+1]-oy;F[b+2]=h[jq]-ox;F[b+3]=h[jq+1]-oy;F[b+4]=h[jr]-ox;F[b+5]=h[jr+1]-oy;F[b+6]=sd;F[b+7]=0;F[b+8]=col[0];F[b+9]=col[1];F[b+10]=col[2];F[b+11]=al;v++}
       if(k<n-1){const a=v-2;I[i++]=a;I[i++]=a+1;I[i++]=a+2;I[i++]=a+1;I[i++]=a+3;I[i++]=a+2}
     }
@@ -3417,7 +3556,7 @@ function g2Draw(){
 /* 换格点时：旧格距的箭头（在现在的范围里重新取过一遍）淡出，新的一组淡入；两组铺满同样的区域 */
 function g2FadeFrom(o){
   const g=G2,mono=S.bg!=="none",maxL=o.cell*0.84,ink=mono?g2c("rgb("+T.inkRgb+")",0.78):null,it=[];
-  const wf=lodWf();for(const a of o.list){const w=a.c===false?wf:1;if(!(a.m>1e-12)||w<0.01)continue;const r=a.m/o.mref,L=(S.normalize?maxL:maxL*Math.min(1,r))*w,c=ink||g2cm(Math.min(1,r),1);it.push([a.x,a.y,a.vx/a.m,a.vy/a.m,L,c[0],c[1],c[2],c[3]*w])}
+  const wf=lodWf();for(const a of o.list){const w=a.c===false?wf:1;if(!(a.m>1e-12)||w<0.01)continue;const r=a.m/o.mref,L=maxL*nmL(r)*w,c=bgCol(Math.min(1,r),0.78);it.push([a.x,a.y,a.vx/a.m,a.vy/a.m,L,c[0],c[1],c[2],c[3]*w])}
   g2FillGlyphs(g.arrO,it,[S.c.x,S.c.y]);g.arrO.cell=o.cell;g.arrO.cov=null;g.af={pend:false,dur:o.dur,t0:performance.now()};
 }
 function g2Busy(){return !!(G2.af||STF||PINGROW)}
@@ -3473,7 +3612,7 @@ let A3=[];
 const PROJ3=`uniform vec3 u_C;uniform float u_R,u_F,u_psc,u_dn,u_df;uniform vec4 u_rot;uniform vec2 u_pc,u_half;uniform vec3 u_fog;
 vec4 proj(vec3 w){vec3 x=(w-u_C)/u_R;float x1=x.x*u_rot.x-x.y*u_rot.y,y1=x.x*u_rot.y+x.y*u_rot.x,y2=y1*u_rot.z-x.z*u_rot.w,z2=y1*u_rot.w+x.z*u_rot.z,d=-y2,s=u_F/(u_F-d);return vec4(u_pc.x+x1*u_psc*s,u_pc.y-z2*u_psc*s,d,s);}
 float dT(float d){return clamp((u_dn-d)/max(1e-6,u_dn-u_df),0.0,1.0);}
-vec3 shade(vec3 c,float t){float hi=max(0.0,1.0-t/0.45)*0.3;c=c+(1.0-c)*hi;return mix(c,u_fog,0.24*pow(t,1.2));}
+vec3 shade(vec3 c,float t){float hi=max(0.0,1.0-t/0.45)*0.3;c=c+(1.0-c)*hi;return mix(c,u_fog,0.17*pow(t,1.2));}
 vec4 clip(vec2 S){return vec4(S.x/u_half.x-1.0,1.0-S.y/u_half.y,0.0,1.0);}`;
 const L3_VS=`#version 300 es
 layout(location=0) in vec3 a_p;layout(location=1) in vec3 a_q;layout(location=2) in vec3 a_r;layout(location=3) in vec2 a_sd;layout(location=4) in vec4 a_c;
@@ -3523,7 +3662,7 @@ void main(){
   float rm=1.0;if(u_rv.y>0.5){float kk=texture(u_key3,(i_p-u_k0)*u_kd).r;rm=smoothstep(0.0,1.0,(u_rv.x*1.28-kk)/0.28);}
   {vec2 Cc=proj(i_p).xy;P=Cc+(P-Cc)*(0.45+0.55*rm);}
   gl_Position=clip(P);
-  float al=(1.0-0.44*pow(tt,1.5))*u_a;
+  float al=(1.0-0.3*pow(tt,1.5))*u_a;
   if(u_mode>1.5){float a=i_c.a*min(1.0,(1.0-0.45*tt)*1.3)*u_a;v_c=vec4(i_c.rgb*a,a);}
   else if(a_t.w>0.5){float h=tt<0.62?0.78*(1.0-tt/0.62):0.0;v_c=vec4(u_fog*h*u_a*i_c.a,h*u_a*i_c.a);}
   else{vec3 c=shade(i_c.rgb,tt);float a=i_c.a*al;v_c=vec4(c*a,a);}
@@ -3621,13 +3760,13 @@ function g3FillGlyphs(o,items,O){
 }
 /* 箭头：按投影后的远近排序（远的先画），每次镜头动了都重排 */
 function g3ArrowItems(list,cell,mref){
-  const tg=2*S.R/S.dens["3d"],it=[],maxL=tg*0.84,wf=lodWf3(),C=S.c3,R=S.R,band=Math.max(tg*0.6,1e-12);
+  const tg=2*S.R/S.dens["3d"],it=[],maxL=tg*0.84,wf=lodWf3(),C=S.c3,R=S.R,band=Math.max(tg*0.5,1e-12),m3=bgS(BG3.m),dm3=bgS(Math.min(1,BG3.w+BG3.wc)),INK=T.inkRgb.split(",").map(Number);
   for(const a of list){
     if(!(a.m>1e-12))continue;
     const d=R-Math.max(Math.abs(a.x-C[0]),Math.abs(a.y-C[1]),Math.abs(a.z-C[2]));if(d<=0)continue;
-    const q=d>=band?1:d/band,w=(a.c===false?wf:1)*q*q*(3-2*q);if(w<0.01)continue;
-    const r=Math.min(1,a.m/mref),L=maxL*(S.normalize?1:r)*w,c=cmap(r);
-    projS(a.x,a.y,a.z);it.push([a.x,a.y,a.z,a.vx/a.m,a.vy/a.m,a.vz/a.m,L,c[0]/255,c[1]/255,c[2]/255,w,PD]);
+    const q=d>=band?1:d/band,eg=q*q*(3-2*q),wl=a.c===false?wf:1,w=wl*eg,wa=Math.min(1,wl*2)*eg;if(w<0.01)continue;
+    const r=Math.min(1,a.m/mref),L=maxL*nmL(Math.pow(r,0.45))*w,c=cmap(r),cr=m3>0?[c[0]+(INK[0]-c[0])*m3,c[1]+(INK[1]-c[1])*m3,c[2]+(INK[2]-c[2])*m3]:c;
+    projS(a.x,a.y,a.z);it.push([a.x,a.y,a.z,a.vx/a.m,a.vy/a.m,a.vz/a.m,L,cr[0]/255,cr[1]/255,cr[2]/255,wa*(1-0.5*dm3),PD]);
   }
   it.sort((p,q)=>p[11]-q[11]);return it;
 }
@@ -3659,17 +3798,21 @@ function g3Box(){
   const gl=G2.gl;gl.bindVertexArray(null);gl.bindBuffer(gl.ARRAY_BUFFER,g.walls.vb);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(tri),gl.DYNAMIC_DRAW);g.walls.n=tri.length/7;g.walls.O=O;
 }
 function g3Particles(){
-  const o=G3D.part,C=S.c3,ox=C[0],oy=C[1],oz=C[2],col=g2c(T.particle,1),pa=(String(T.particle).match(/[\d.]+/g)||[0,0,0,0.4])[3]*0.75,r=col[0],g=col[1],b=col[2];
+  const o=G3D.part,C=S.c3,ox=C[0],oy=C[1],oz=C[2],col=g2c(T.particle,1),pa=(String(T.particle).match(/[\d.]+/g)||[0,0,0,0.4])[3]*1.0,r=col[0],g=col[1],b=col[2];
   let nv=0,ni=0;for(const p of P){const h=p.h;if(!h||h.length-p.s<8)continue;const n=(h.length-p.s)/4|0;nv+=2*n;ni+=6*(n-1)}
   if(!o.F||o.F.length<nv*15)o.F=new Float32Array(Math.ceil(nv*15*1.3)+15);
   if(!o.I||o.I.length<ni)o.I=new Uint32Array(Math.ceil(ni*1.3)+6);
-  const F=o.F,I=o.I;let v=0,i=0;
+  const F=o.F,I=o.I,w3=BG3.w>0&&S.div3s>0?bgS(BG3.w):0,wc3=BG3.wc>0&&S.curl3s>0?bgS(BG3.wc):0;let v=0,i=0;
+  const PO=T.pos.map(x=>x/255),NE=T.neg.map(x=>x/255),VX=-PJ.syw*PJ.cp,VY=-PJ.cyw*PJ.cp,VZ=PJ.sp;
   for(const p of P){
     const h=p.h;if(!h||h.length-p.s<8)continue;const s=p.s,last=h.length-4;
+    /* 散度染色：红色是往外散（源），蓝色是往里收（汇），越强越浓；没有散度的地方保持原来的颜色 */
+    let pr=r,pg=g,pb=b,pk=1;if(w3>0&&p.dv!=null){const u=Math.pow(Math.min(1,Math.abs(p.dv)/S.div3s),0.7)*w3,c=p.dv>0?PO:NE;pr=r+(c[0]-r)*u*0.92;pg=g+(c[1]-g)*u*0.92;pb=b+(c[2]-b)*u*0.92;pk=1+0.6*u}
+    if(wc3>0&&p.cv){const sw=p.cv[0]*VX+p.cv[1]*VY+p.cv[2]*VZ,u=Math.pow(Math.min(1,Math.abs(sw)/S.curl3s),0.7)*wc3,c=sw>0?PO:NE;pr+=(c[0]-pr)*u*0.92;pg+=(c[1]-pg)*u*0.92;pb+=(c[2]-pb)*u*0.92;pk=Math.max(pk,1+0.6*u)}
     for(let j=s;j<=last;j+=4){
-      const q=j>s?j-4:j,w=j<last?j+4:j,al=pa*(0.2+0.81*(1-Math.min(1,(PF-h[j+3])/PH3)));
+      const q=j>s?j-4:j,w=j<last?j+4:j,al=Math.min(1,pa*pk*(0.3+0.7*(1-Math.min(1,(PF-h[j+3])/PH3))));
       for(let sd=-1;sd<=1;sd+=2){const k=v*15;F[k]=h[j]-ox;F[k+1]=h[j+1]-oy;F[k+2]=h[j+2]-oz;F[k+3]=h[q]-ox;F[k+4]=h[q+1]-oy;F[k+5]=h[q+2]-oz;F[k+6]=h[w]-ox;F[k+7]=h[w+1]-oy;F[k+8]=h[w+2]-oz;
-        F[k+9]=sd;F[k+10]=0;F[k+11]=r;F[k+12]=g;F[k+13]=b;F[k+14]=al;v++}
+        F[k+9]=sd;F[k+10]=0;F[k+11]=pr;F[k+12]=pg;F[k+13]=pb;F[k+14]=al;v++}
       if(j<last){const a=v-2;I[i++]=a;I[i++]=a+1;I[i++]=a+2;I[i++]=a+1;I[i++]=a+3;I[i++]=a+2}
     }
   }
@@ -3692,17 +3835,19 @@ function g3Sync(moved){
     if(A3!==MORPH.old){const e=morphE();if(MORPH){const l=morphList3(e);if(l){g3FillGlyphs(g.arr,g3ArrowItems(l,S.cell,S.am3||S.mref),O);s.a=null;morphed=true}}else s.a=null}
     else if(performance.now()-MORPH.born>800)MORPH=null;else morphed=true;
   }
-  const ak3=[S.am3,S.normalize,S.R,S.c3.join(),Math.round(lodWf3()*400)].join("|");
+  const ak3=[S.am3,Math.round((S.nmv||0)*1000),S.R,S.c3.join(),Math.round(lodWf3()*400),Math.round(BG3.w*100),Math.round(BG3.wc*100),Math.round(BG3.m*100)].join("|");
   if(!morphed&&(moved||s.a!==A3||s.ak3!==ak3)){g3FillGlyphs(g.arr,g3ArrowItems(A3,S.cell,S.am3||S.mref),O);s.a=A3;s.ak3=ak3}
   if(F3&&(moved||s.f3!==F3)){g3FillGlyphs(g.arrO,g3ArrowItems(F3.list,F3.cell,F3.mref),O);g.arrO.cell=F3.cell;s.f3=F3}
   /* 流线图（重算后旧的淡出、新的淡入） */
-  if(s.st!==S.st3){
-    if(S.st3&&S.st3.length){const lines=[],heads=[];for(const L of S.st3){const c=g2cm(Math.min(1,L.m/S.mref),0.85);lines.push({p:L.pts,c});heads.push(...g3Heads([L.pts],100,-50,g2cm(Math.min(1,L.m/S.mref),0.92)))}
+  /* 流线的颜色也一样：选了散度或旋度就在彩色和单色之间过渡 */
+  const mS=bgS(BG3.m),mk=Math.round(mS*50),inkL=g2c("rgb("+T.inkRgb+")",0.7),inkH=g2c("rgb("+T.inkRgb+")",0.8),mix=(c,k)=>mS<=0?c:[c[0]+(k[0]-c[0])*mS,c[1]+(k[1]-c[1])*mS,c[2]+(k[2]-c[2])*mS,c[3]+(k[3]-c[3])*mS];
+  if(s.st!==S.st3||s.stm!==mk){
+    if(S.st3&&S.st3.length){const lines=[],heads=[];for(const L of S.st3){const c=mix(g2cm(Math.min(1,L.m/S.mref),0.85),inkL);lines.push({p:L.pts,c});heads.push(...g3Heads([L.pts],100,-50,mix(g2cm(Math.min(1,L.m/S.mref),0.92),inkH)))}
       g3FillLines(g.st,lines,O);g3FillGlyphs(g.stH,heads,O)}else{g.st.n=0;g.stH.n=0}
-    s.st=S.st3;
+    s.st=S.st3;s.stm=mk;
   }
-  if(ST3F&&s.sto!==ST3F){const lst=ST3F.old||[];const lines=[],heads=[];for(const L of lst){const c=g2cm(Math.min(1,L.m/S.mref),0.85);lines.push({p:L.pts,c});heads.push(...g3Heads([L.pts],100,-50,g2cm(Math.min(1,L.m/S.mref),0.92)))}
-    g3FillLines(g.stO,lines,O);g3FillGlyphs(g.stHO,heads,O);s.sto=ST3F}
+  if(ST3F&&(s.sto!==ST3F||s.stmo!==mk)){const lst=ST3F.old||[];const lines=[],heads=[];for(const L of lst){const c=mix(g2cm(Math.min(1,L.m/S.mref),0.85),inkL);lines.push({p:L.pts,c});heads.push(...g3Heads([L.pts],100,-50,mix(g2cm(Math.min(1,L.m/S.mref),0.92),inkH)))}
+    g3FillLines(g.stO,lines,O);g3FillGlyphs(g.stHO,heads,O);s.sto=ST3F;s.stmo=mk}
   /* 过探针的流线 */
   if(s.sl!==S.sl){const tr=S.sl;if(tr){const P=tr.d||tr.paths;g3FillLines(g.sl,P.map(p=>({p,c:g2c(T.probe,1)})),O);g3FillGlyphs(g.slH,g3Heads(P,150,-80,g2c(T.probe,1),tr.dirs),O)}else{g.sl.n=0;g.slH.n=0}s.sl=S.sl}
 }
@@ -3734,7 +3879,7 @@ function g3Draw(moved){
   /* 线：网格、棱、粒子、流线图 */
   gl.useProgram(g.lp);g3Uni(g.lu);
   g3Lines(g.grid,1,false,0,1,false);g3Lines(g.box,1.1,false,0,1,false);g3Lines(g.boxF,1.1,false,0,1,false);
-  if(revOn("particles"))g3Lines(g.part,1.2,false,2,DIM[1],true,revA("particles"));
+  if(revOn("particles"))g3Lines(g.part,1.2*(1+0.35*bgS(Math.min(1,BG3.w+BG3.wc))),false,2,DIM[1],true,revA("particles"));
   let se=1;const sOn=revOn("stream"),sR=revA("stream");if(sOn&&ST3F){se=ease2((now-ST3F.t0)/ST3F.dur);if(se>=1){ST3F=null;se=1;g.stO.n=g.stHO.n=0}}
   if(sOn){if(se<1)g3Lines(g.stO,1.35,true,1,(1-se)*DIM[0],true,sR);g3Lines(g.st,1.35,true,1,se*DIM[0],true,sR)}
   /* 箭头（从远到近，每个带垫底描边）和流线的方向头 */
@@ -3788,7 +3933,14 @@ function decim3(pts){
 }
 /* 右上角的方向小坐标轴：跟着视角一起转。点 x、y、z 换成侧视、正视、俯视，点中间回到斜视 */
 let GZH=null;const GZV=[3,2,1,0];
-function gzGeom(){const r=W<560?23:29;return{cx:W-r-20,cy:r+20,r}}
+let GZC=null;
+function gzGeom(){
+  const fs=stage.classList.contains("is-fs"),key=W+"x"+H+"|"+fs;
+  if(!GZC||GZC.key!==key){const r=fs?(W<560?23:29):(W<560?17:21),tb=$(".tbar"),cr=cv.getBoundingClientRect(),tr=tb?tb.getBoundingClientRect():null;
+    let by=H-14;if(tr&&tr.height&&tr.top>cr.top&&tr.top<cr.bottom-4)by=tr.top-cr.top-10;
+    GZC={key,cx:W-r-26,cy:by-r-12,r}}
+  return GZC;
+}
 function gzAxes(){
   const o=[];
   for(let i=0;i<3;i++){const x=+(i===0),y=+(i===1),z=+(i===2),x1=x*PJ.cyw-y*PJ.syw,y1=x*PJ.syw+y*PJ.cyw,y2=y1*PJ.cp-z*PJ.sp,z2=y1*PJ.sp+z*PJ.cp;o.push({i,sx:x1,sy:-z2,d:-y2})}
@@ -3853,38 +4005,82 @@ function drawTrace3D(c,tr){
 /* 盒子里的 n × n × n 个格点。缩放的过程中格点钉在世界坐标里，跟着画面一起散开或收拢（和二维一样）；
    缩放超过 0.72–1.4 倍就换一套格点，停下来换回标准格点，两次都是旧箭头缩回去、新箭头长出来 */
 let AN3=null;
-function sample3D(){
-  /* 和二维一样：格距取 2 的幂、钉在世界坐标上的粗细两层格点。细的一层随缩放连续地淡入、由短变长；
-     靠近盒子边的箭头也慢慢淡出，所以缩放、平移时箭头不会一下冒出来或消失（权重在 g3ArrowItems 里按当前视图算）。
-     盒子外面多取一层，平移时新进来的箭头是从边上淡入的 */
-  const n=S.dens["3d"],R=S.R,C=S.c3,tg=2*R/n,lf=Math.floor(Math.log2(tg)),f=Math.pow(2,lf),ms=[],all=[];A3=[];let total=0,bad=0;const cnt=[0,0,0];
-  const i0=[0,0,0],i1=[0,0,0];
-  for(let a=0;a<3;a++){i0[a]=Math.ceil((C[a]-R)/f-1e-9)-1;i1[a]=Math.floor((C[a]+R)/f+1e-9)+1}
-  for(let i=i0[0];i<=i1[0];i++)for(let j=i0[1];j<=i1[1];j++)for(let l=i0[2];l<=i1[2];l++){
-    const x=i*f,y=j*f,z=l*f,fv=S.F(x,y,z),m=Math.hypot(fv[0],fv[1],fv[2]),c=(i&1)===0&&(j&1)===0&&(l&1)===0;
-    const ins=Math.abs(x-C[0])<=R&&Math.abs(y-C[1])<=R&&Math.abs(z-C[2])<=R;if(ins)total++;
-    if(ins)for(let q=0;q<3;q++)if(!isFinite(fv[q]))cnt[q]++;
-    if(!isFinite(m)){if(ins)bad++;continue}
+/* 三维的箭头格点：钉在世界坐标上——缩放时箭头跟着空间一起散开、收拢（和二维一样）。
+   格点一层套一层：简单立方 → 体心立方（多出每个小方块的中心）→ 边长减半的简单立方 → …，每一层都包含上一层的全部点，
+   相邻两层的点数差 2 倍或 4 倍。按现在盒子的大小挑最接近目标密度的一层（带一点回差，免得在分界上来回跳）；
+   换层时，多出来的那些箭头在约 0.3 秒里淡入、长出来（缩小时则缩回去、淡出），平时每支箭头都是全亮的 */
+var LV3={k:null,w:1,t:0,A:[0,0,0],s0:1};
+/* 格点的“锚”：装例子、换模式、改密度时，按当时的盒子定一次——第 0 层正好是盒子里 n×n×n 个格子的中心；
+   之后缩放时锚不动，所以缩放回原来的大小，箭头也正好回到原来那 n×n×n 个位置 */
+function lv3Sp(k){return LV3.s0*Math.pow(2,((k%2)+2)%2!==0?(k+1)/2:k/2)}
+function lv3Int(lo,hi){return Math.max(0,Math.ceil(hi-1e-9)-1-Math.floor(lo+1e-9))}
+function lv3Count(k){const R=S.R,C=S.c3,A=LV3.A,s=lv3Sp(k),bcc=((k%2)+2)%2!==0;let pc=1,pb=1;
+  for(let q=0;q<3;q++){const lo=(C[q]-R-A[q])/s,hi=(C[q]+R-A[q])/s;pc*=lv3Int(lo,hi);pb*=lv3Int(lo-0.5,hi-0.5)}return pc+(bcc?pb:0)}
+function lv3Err(k){const n=S.dens["3d"];return Math.abs(Math.log2(Math.max(1,lv3Count(k))/(n*n*n)))}
+function sample3D(depth){
+  depth=depth||0;const n=S.dens["3d"],R=S.R,C=S.c3,tg=2*R/n,ms=[],all=[];A3=[];let total=0,bad=0;const cnt=[0,0,0];
+  if(LV3.k===null){LV3.s0=tg;LV3.A=[C[0]-R+tg/2,C[1]-R+tg/2,C[2]-R+tg/2];LV3.k=0;LV3.w=1}
+  const k=LV3.k,bcc=((k%2)+2)%2!==0,s=lv3Sp(k),lim=R+s,A=LV3.A;
+  const lo=[0,1,2].map(q=>Math.floor((C[q]-lim-A[q])/s)),hi=[0,1,2].map(q=>Math.ceil((C[q]+lim-A[q])/s));
+  const add=(x,y,z,c)=>{
+    const dx=x-C[0],dy=y-C[1],dz=z-C[2];if(Math.abs(dx)>lim||Math.abs(dy)>lim||Math.abs(dz)>lim)return;
+    const fv=S.F(x,y,z),m=Math.hypot(fv[0],fv[1],fv[2]),ins=Math.abs(dx)<=R&&Math.abs(dy)<=R&&Math.abs(dz)<=R;
+    if(ins){total++;for(let q=0;q<3;q++)if(!isFinite(fv[q]))cnt[q]++}
+    if(!isFinite(m)){if(ins)bad++;return}
     A3.push({x,y,z,vx:fv[0],vy:fv[1],vz:fv[2],m,c});if(ins)all.push(m);
-    const dx=x-C[0],dy=y-C[1],dz=z-C[2];if(dx*dx+dy*dy+dz*dz<=0.64*R*R)ms.push(m);
+    if(dx*dx+dy*dy+dz*dz<=0.64*R*R)ms.push(m);
+  };
+  for(let i=lo[0];i<=hi[0];i++)for(let j=lo[1];j<=hi[1];j++)for(let l=lo[2];l<=hi[2];l++){
+    const x=A[0]+i*s,y=A[1]+j*s,z=A[2]+l*s;
+    if(bcc){add(x,y,z,true);add(x+s/2,y+s/2,z+s/2,false)}
+    else{const p=i&1,q=j&1,r=l&1;add(x,y,z,(p|q|r)===0||(p&q&r)===1)}
   }
+  /* 盒子里两层各有多少（靠墙的按淡出的程度打折）：稀的一层全亮，密的一层多出来的按比例 w 出现，合起来正好 n×n×n；
+     一层整个都显示了还不够，就换更密的一层；稀的一层单独都嫌多，就换更稀的一层。换的那一刻，看得见的箭头完全一样 */
+  {let Bw=0,Ew=0;const band=Math.max(0.5*tg,1e-12),T=n*n*n;
+   for(const a of A3){const d=R-Math.max(Math.abs(a.x-C[0]),Math.abs(a.y-C[1]),Math.abs(a.z-C[2]));if(d<=0)continue;const q=d>=band?1:d/band,e=q*q*(3-2*q);if(a.c===false)Ew+=e;else Bw+=e}
+   if(depth<4){if(T>Bw+Ew+1e-6){LV3.k--;return sample3D(depth+1)}if(T<Bw-1e-6){LV3.k++;return sample3D(depth+1)}}
+   LV3.w=Ew>1e-9?Math.max(0,Math.min(1,(T-Bw)/Ew)):1}
   const m0=pct(ms.length>8?ms:all.length?all:[1],0.9);
-  /* 流线、粒子用的参考值：视图在动的时候先不变，停下来再更新（和原来一样） */
   if(S.viewBusy){if(!AN3)AN3={mref:S.mref};if(!(AN3.mref>0))AN3.mref=m0;S.mref=AN3.mref}else S.mref=m0;
-  /* 箭头的长度和颜色用的参考值：跟着当前视图，按时间平滑过去（g3Sync）；换了式子立刻换 */
-  S.mT3=m0;if(S.am3F!==S.fver||!(S.am3>0)||reduce){S.am3=m0;S.am3F=S.fver}
-  S.lodF3=lf;S.cell=tg;coverage(total,bad,cnt);
+  S.mT3=m0;S.mP3=pct(ms.length>8?ms:all.length?all:[1],0.5);if(S.am3F!==S.fver||!(S.am3>0)||reduce){S.am3=m0;S.am3F=S.fver}
+  S.lodF3=null;S.cell=tg;coverage(total,bad,cnt);
+  div3Stats();updateBgNote();
 }
-/* 细的那层格点现在的权重：取 (8^(1-u)-1)/7，盒子里看得见的箭头总数保持不变 */
-function lodWf3(){const tg=2*S.R/S.dens["3d"],u=Math.log2(tg)-(S.lodF3==null?Math.floor(Math.log2(tg)):S.lodF3);return u>=1?0:u<=0?1:(Math.pow(8,1-u)-1)/7}
+/* 多出来的那一层（不在更稀的一层里的点）现在的权重 */
+function lodWf3(){return LV3.w}
+/* 每帧：按现在盒子的大小，算出目标密度（盒子里 n×n×n 支）落在哪两层之间：稀的那层全亮，
+   密的那层多出来的点按比例淡入、长出来，盒子里看得见的箭头总量正好保持 n×n×n（和二维的做法一样）。
+   缩放多少，箭头就出现或消失多少，放大时新箭头从旧箭头之间慢慢长出来，缩小时再慢慢缩回去；停下来就不再变 */
+function lv3LogD(k){return((k%2)+2)%2===0?-1.5*k:-1.5*k-0.5}
+function lv3Step(){return false}
 let TBH=0,P3PAD=0,P3L=0;
 let MORPH=null,SLG=null;
 const mkey=(x,y,z,c)=>Math.round(x/c*64)+","+Math.round(y/c*64)+","+Math.round((z||0)/c*64);
 function morphStart(){
-  MORPH=null;if(reduce||!S.F||!W)return;const two=S.mode==="2d",old=two?A2:A3;
-  if(!old||!old.length||!revOn("arrows"))return;
-  MORPH={mode:S.mode,old,mref:S.mref,cell:S.cell,born:performance.now(),t0:0,dur:1000,pairs:null};
+  const prev=MORPH;MORPH=null;if(reduce||!S.F||!W||S.noMorph||!revOn("arrows"))return;const two=S.mode==="2d";
+  let old=two?A2:A3,mref=two?(S.amref||S.mref):(S.am3||S.mref);
+  /* 上一次的转动还没播完又换了场：从屏幕上现在的样子（转到一半的方向、长度）接着转，不先跳到上一个场 */
+  if(prev&&prev.mode===S.mode){
+    if(prev.pairs&&prev.t0){const u=(performance.now()-prev.t0)/prev.dur;if(u<1){const s=two?morphSnap2(prev,easeIO(u)):morphSnap3(prev,easeIO(u));old=s.list;mref=s.mref}}
+    else if(!prev.pairs){old=prev.old;mref=prev.mref}
+  }
+  if(!old||!old.length)return;
+  MORPH={mode:S.mode,old,mref,cell:S.cell,born:performance.now(),t0:0,dur:1000,pairs:null};
 }
+/* 转到一半时屏幕上的箭头，写成和格点数据一样的形式，当作下一次转动的起点 */
+function morphSnap2(M,e){
+  const ref=S.amref||S.mref,out=[];
+  for(const[a,b]of M.pairs){
+    const ra=a&&a.m>1e-12?Math.min(1,a.m/M.mref):0,rb=b&&b.m>1e-12?Math.min(1,b.m/ref):0;
+    const ta=a&&a.m>1e-12?Math.atan2(a.vy,a.vx):null,tb=b&&b.m>1e-12?Math.atan2(b.vy,b.vx):null;
+    const th=ta===null?tb:tb===null?ta:ta+wrapAng(tb-ta)*e;if(th===null)continue;
+    const m=(ra+(rb-ra)*e)*ref,p=b||a;if(!(m>1e-12))continue;
+    out.push({x:p.x,y:p.y,vx:Math.cos(th)*m,vy:Math.sin(th)*m,m,c:p.c});
+  }
+  return{list:out,mref:ref};
+}
+function morphSnap3(M,e){const keep=MORPH;MORPH=M;let l=null;try{l=morphList3(e)}finally{MORPH=keep}return{list:l||[],mref:S.am3||S.mref}}
 /* 进度 0→1；新场的箭头算好那一刻才开始计时；1 秒后结束 */
 function morphE(){const M=MORPH;if(!M)return 1;const now=performance.now();if(!M.t0)M.t0=now;const u=(now-M.t0)/M.dur;if(u>=1){MORPH=null;return 1}return easeIO(u)}
 /* 旧、新两组箭头按格点配对；对不上的太多（换了缩放或视图）就不做插值，改成淡入淡出 */
@@ -3898,20 +4094,20 @@ function morphPairs(M,list){
 }
 function morphItems2(e){
   const M=MORPH;if(!M.pairs){M.pairs=morphPairs(M,A2);if(!M.pairs){MORPH=null;fadeArrows(450);return null}}
-  const mono=S.bg!=="none",ink=mono?g2c("rgb("+T.inkRgb+")",0.78):null,maxL=S.cell*0.84,it=[],nm=S.normalize,wf2=lodWf();
+  const mono=S.bg!=="none",ink=mono?g2c("rgb("+T.inkRgb+")",0.78):null,maxL=S.cell*0.84,it=[],wf2=lodWf();
   for(const[a,b]of M.pairs){
     const ra=a&&a.m>1e-12?Math.min(1,a.m/M.mref):0,rb=b&&b.m>1e-12?Math.min(1,b.m/(S.amref||S.mref)):0;
     const ta=a&&a.m>1e-12?Math.atan2(a.vy,a.vx):null,tb=b&&b.m>1e-12?Math.atan2(b.vy,b.vx):null;
     let th=ta===null?tb:tb===null?ta:ta+wrapAng(tb-ta)*e;if(th===null)continue;
-    const wa=a&&a.c===false?wf2:1,wb=b&&b.c===false?wf2:1,La=a?(nm&&ra>0?maxL:maxL*ra)*wa:0,Lb=b?(nm&&rb>0?maxL:maxL*rb)*wb:0,L=La+(Lb-La)*e;if(!(L>1e-12))continue;
-    const rr=ra+(rb-ra)*e,c=ink||g2cm(Math.max(0,Math.min(1,rr)),1),p=b||a;
+    const wa=a&&a.c===false?wf2:1,wb=b&&b.c===false?wf2:1,La=a&&ra>0?maxL*nmL(ra)*wa:0,Lb=b&&rb>0?maxL*nmL(rb)*wb:0,L=La+(Lb-La)*e;if(!(L>1e-12))continue;
+    const rr=ra+(rb-ra)*e,c=bgCol(Math.max(0,Math.min(1,rr)),0.78),p=b||a;
     it.push([p.x,p.y,Math.cos(th),Math.sin(th),L,c[0],c[1],c[2],c[3]*(a&&b?wa+(wb-wa)*e:(b?wb:wa))]);
   }
   return it;
 }
 function morphList3(e){
   const M=MORPH;if(!M.pairs){M.pairs=morphPairs(M,A3);if(!M.pairs){MORPH=null;fade3(450);return null}}
-  const out=[],nm=S.normalize;
+  const out=[],nm=(S.nmv||0)>0.5;
   for(const[a,b]of M.pairs){
     const ra=a&&a.m>1e-12?Math.min(1,a.m/M.mref):0,rb=b&&b.m>1e-12?Math.min(1,b.m/(S.am3||S.mref)):0;
     const ua=a&&a.m>1e-12?[a.vx/a.m,a.vy/a.m,a.vz/a.m]:null,ub=b&&b.m>1e-12?[b.vx/b.m,b.vy/b.m,b.vz/b.m]:null;
@@ -4041,12 +4237,14 @@ function proj(x,y,z){
 }
 function stepParticles3D(dt){
   PF++;
-  const C=S.c3,lim=S.R*1.02,old=PF-PH3,hs=S.R/25,q=QB;
+  const C=S.c3,lim=S.R*1.02,old=PF-PH3,hs=S.R/25,q=QB,dvOn=S.bg==="div"&&S.div3s>0,cvOn=S.bg==="curl"&&S.curl3s>0,kdv=1-Math.exp(-dt/0.12);
   for(const p of P){
     if(!p.h||!p.h.length){spawn3D(p);continue}
     const h=p.h;trimTrail(p,4,old,true);
     p.age+=dt;const L=h.length-4;q[0]=h[L];q[1]=h[L+1];q[2]=h[L+2];
     if(!advP(q,dt,hs,h,PF)||p.age>p.life||Math.abs(q[0]-C[0])>lim||Math.abs(q[1]-C[1])>lim||Math.abs(q[2]-C[2])>lim){spawn3D(p);continue}
+    if(dvOn){const d=div3(q[0],q[1],q[2]);if(isFinite(d))p.dv=p.dv==null?d:p.dv+(d-p.dv)*kdv}
+    else if(cvOn){const r=dc3(q[0],q[1],q[2]);if(isFinite(r[1])&&isFinite(r[2])&&isFinite(r[3])){if(!p.cv)p.cv=[r[1],r[2],r[3]];else{p.cv[0]+=(r[1]-p.cv[0])*kdv;p.cv[1]+=(r[2]-p.cv[1])*kdv;p.cv[2]+=(r[3]-p.cv[2])*kdv}}}
   }
 }
 const PMAX=Math.PI/2-0.01;let camG=null;
@@ -4152,7 +4350,7 @@ function scene3D(c,list,cell,mref,am,withStream){
   const wfS=lodWf3();
   if(S.L.arrows&&list&&am>0)for(const a of list){
     if(!(a.m>1e-12))continue;const w3=a.c===false?wfS:1;if(w3<0.2)continue;
-    const r=Math.min(1,a.m/mref),L=maxL*(S.normalize?1:r)*w3/2/a.m,ux=a.vx*L,uy=a.vy*L,uz=a.vz*L,hw=[a.x+ux,a.y+uy,a.z+uz],sg=clipSeg3([a.x-ux,a.y-uy,a.z-uz],hw,LHB);if(!sg)continue;
+    const r=Math.min(1,a.m/mref),L=maxL*nmL(Math.pow(r,0.45))*w3/2/a.m,ux=a.vx*L,uy=a.vy*L,uz=a.vz*L,hw=[a.x+ux,a.y+uy,a.z+uz],sg=clipSeg3([a.x-ux,a.y-uy,a.z-uz],hw,LHB);if(!sg)continue;
     projS(sg[0][0],sg[0][1],sg[0][2]);const x0=PX,y0=PY,d0=PD,s0=PS;projS(sg[1][0],sg[1][1],sg[1][2]);
     const B=bins[Math.min(NB3-1,Math.floor(depthT((d0+PD)/2)*NB3))],ci=Math.min(NC-1,Math.floor(r*NC)),spth=B.sh[ci]||(B.sh[ci]=new Path2D()),hpth=B.hd[ci]||(B.hd[ci]=new Path2D());
     if(inLH(hw,LHB))arrowP(spth,hpth,x0,y0,PX,PY,head*(s0+PS)/2);else{spth.moveTo(x0,y0);spth.lineTo(PX,PY)}
@@ -4329,7 +4527,7 @@ function roBuild(){
 }
 function roSet(k,v){const b=RO.el[k];if(b&&b._t!==v){b.textContent=v;b._t=v}}
 function updateReadout(){
-  if(!S.F)return;
+  if(!S.F)return;if(PTC&&PTC.mode)ptcRefresh();
   const pl='<span class="dot"></span>'+esc(t("probe"));
   if(S.mode==="2d"){
     const h=S.hover,f=S.F(h.x,h.y),J=jac(h.x,h.y,0),curl=J[1][0]-J[0][1];
@@ -4358,21 +4556,24 @@ function renderPathReadout(){
   h+='<span class="plg"><span><i></i>'+esc(t("pathPos"))+'</span><span><i class="neg"></i>'+esc(t("pathNeg"))+"</span></span>";
   roX.innerHTML=h;setPCard(true);
 }
-const LG={bar:$("#lgBar"),m:$("#lgM"),c:$("#lgC"),t:$("#lgT"),l:$("#lgL"),r:$("#lgR"),nc:$("#lgNC"),cnt:$("#viewCnt"),oR:$("#oR")};
+const LG={bl:document.querySelector("#legend .barlab"),bar:$("#lgBar"),m:$("#lgM"),c:$("#lgC"),t:$("#lgT"),l:$("#lgL"),r:$("#lgR"),nc:$("#lgNC"),cnt:$("#viewCnt"),oR:$("#oR")};
 function setHid(el,b){if(el.hidden!==b)el.hidden=b}
 function updateLegend(){
-  const heatOn=S.mode==="2d"&&S.bg!=="none",div=S.bg==="div",sc=S.heatScale,lc=LG.c,cls="bar"+(heatOn?" heat":"");
+  /* 名字在色条左边；散度、旋度只写 div F、curl F，两端写上负、正各代表什么；整个场处处为 0 时不画色条，直接写出来 */
+  const md=S.mode,heatOn=S.bg!=="none",div=S.bg==="div",sc=md==="2d"?S.heatScale:div?S.div3s:S.curl3s,lc=LG.c;
+  const zero=heatOn&&(md==="2d"?!!S.heatZero:div?!!S.div3Zero:!!S.curl3Zero||!(sc>0))||(heatOn&&!(sc>0)),cls="bar"+(heatOn?" heat":"");
+  let c3=document.getElementById("lgC3");if(!c3){c3=document.createElement("div");c3.id="lgC3";c3.className="lg-c3";c3.hidden=true;$("#legend").appendChild(c3)}
+  const seen=md==="3d"&&heatOn&&!div&&!zero;setHid(c3,!seen);if(seen)setText(c3,t("lgSeen"));
   if(LG.bar.className!==cls)LG.bar.className=cls;
-  setHid(LG.m,!heatOn);setHid(lc,!heatOn);
-  if(heatOn){
-    setText(LG.t,t(div?"lgDiv":"lgCurl"));
-    const fs=v=>v>=0.01?fmt(v):v.toExponential(1).replace("-","−");
-    setText(LG.l,sc?"−"+fs(sc):"");setText(LG.r,sc?"+"+fs(sc):"");
-    setText(lc,sc?t(div?"capDiv":"capCurl"):t(div?"zeroDiv":"zeroCurl"));const ti=sc?t(div?"capDivL":"capCurlL"):"";if(lc.title!==ti)lc.title=ti;
-  }else{
-    setText(LG.t,t("lgMag"));setText(LG.l,"0");setText(LG.r,fmt(S.mref)+"+");
+  setHid(LG.m,true);
+  if(zero){setHid(LG.t,true);setHid(LG.bar,true);setHid(LG.bl,true);setHid(lc,false);setText(lc,t(div?"zeroDivS":"zeroCurlS"));if(lc.title)lc.title=""}
+  else{
+    setHid(LG.t,false);setHid(LG.bar,false);setHid(LG.bl,false);setHid(lc,true);
+    if(heatOn){const fs=v=>v>=0.01?fmt(v):v.toExponential(1).replace("-","−");
+      setText(LG.t,t(div?"lgDivS":"lgCurlS"));setText(LG.l,"−"+fs(sc)+" "+t(div?"lgNegD":"lgNegC"));setText(LG.r,t(div?"lgPosD":"lgPosC")+" +"+fs(sc))}
+    else{setText(LG.t,"|F|");setText(LG.l,"0");setText(LG.r,fmt(S.mref)+"+")}
   }
-  setHid(LG.nc,!(S.mode==="2d"&&S.L.nullc));
+  setHid(LG.nc,!(md==="2d"&&S.L.nullc));
   setText(LG.cnt,"±"+fmtR(S.R));
 }
 function renderEq(){
@@ -4584,15 +4785,16 @@ function capMorph(fill,swap){
   if(!SM.ready||smReduce()||!capC.getClientRects().length){fill();return}
   if(capC._mA){capC._mA.cancel();capC._mA=null}
   const r0=capC.getBoundingClientRect(),c0=cap.getBoundingClientRect();let g=null;
+  let gop=1;
   if(swap){
-    capC.querySelectorAll(".cap-ghost").forEach(x=>x.remove());
+    {const v=parseFloat(getComputedStyle(cap).opacity);gop=isFinite(v)?v:1}
     g=document.createElement("div");g.className="cap cap-ghost";g.setAttribute("aria-hidden","true");g.innerHTML=cap.innerHTML;
     g.style.left=(c0.left-r0.left)+"px";g.style.top=(c0.top-r0.top)+"px";g.style.width=c0.width+"px";g.style.height=c0.height+"px";
   }
   fill();
   const r1=capC.getBoundingClientRect();
-  if(g){capC.appendChild(g);g.animate([{opacity:1},{opacity:0}],{duration:170,easing:"ease-out",fill:"forwards"}).onfinish=()=>g.remove();
-    cap.animate([{opacity:0},{opacity:1}],{duration:260,delay:110,easing:"ease-out",fill:"backwards"})}
+  if(g){capC.appendChild(g);g.animate([{opacity:gop},{opacity:0}],{duration:Math.max(60,170*gop),easing:"ease-out",fill:"forwards"}).onfinish=()=>g.remove();
+    if(cap._fa)cap._fa.cancel();cap._fa=cap.animate([{opacity:0},{opacity:1}],{duration:260,delay:110,easing:"ease-out",fill:"backwards"})}
   if(Math.abs(r1.width-r0.width)>0.5||Math.abs(r1.height-r0.height)>0.5){
     const a=capC.animate([{width:r0.width+"px",height:r0.height+"px"},{width:r1.width+"px",height:r1.height+"px"}],{duration:320,easing:SM_EASE});capC._mA=a;
     a.onfinish=a.oncancel=()=>{if(capC._mA===a)capC._mA=null;capFit()};
@@ -4695,13 +4897,13 @@ function renderPresets(){
     const box=document.createElement("div");box.className="chips";
     PRESETS[S.mode].map((p,i)=>[p,i]).filter(e=>(e[0].g||0)===gi).sort((u,w)=>(u[0].o??u[1])-(w[0].o??w[1])).forEach(([p,i])=>{
       const b=document.createElement("button");b.type="button";b.textContent=p.name[LANG];b.dataset.i=i;presetTip(b,p);b.style.setProperty("--i",chips.querySelectorAll("button").length+box.children.length);
-      b.addEventListener("click",()=>usePreset(i));box.appendChild(b);
+      b.addEventListener("click",()=>{markPreset(i);switchField(()=>usePreset(i),presetSameView(i))});box.appendChild(b);
     });
     chips.appendChild(box);
   });
   const lab=document.createElement("span");lab.className="cgl";lab.textContent=t("gOther");chips.appendChild(lab);
   const box=document.createElement("div");box.className="chips";
-  const r=document.createElement("button");r.type="button";r.className="rnd";r.textContent=t("rnd");r.dataset.tip=t("rndNote");r.addEventListener("click",randomField);box.appendChild(r);
+  const r=document.createElement("button");r.type="button";r.className="rnd";r.textContent=t("rnd");r.dataset.tip=t("rndNote");r.addEventListener("click",()=>switchField(randomField,true));box.appendChild(r);
   chips.appendChild(box);
   markPreset(S.preset[S.mode],S.rnd[S.mode]);smRise(chips);
 }
@@ -4766,7 +4968,7 @@ function usePreset(i){
   p.f.forEach((s,j)=>ins[j].value=s);
   if(p.params)for(const n in p.params){const q=p.params[n];S.params[n]={v:q.v,min:q.min,max:q.max,step:q.step||autoStep(q.min,q.max)};PR[n]=q.v}
   if(S.mode==="2d"){const c=p.c||[0,0];setView2(p.R,c[0],c[1]);S.hover={x:S.c.x+S.R/2,y:S.c.y+S.R/3};resetDrawings()}
-  else{S.R=p.R;S.c3=(p.c3||[0,0,0]).slice();clampProbe3(true);if(p.n){S.dens["3d"]=p.n;sD.value=p.n;densLabel()}}
+  else{S.R=p.R;S.c3=(p.c3||[0,0,0]).slice();clampProbe3(true);LV3.k=null;if(p.n){S.dens["3d"]=p.n;sD.value=p.n;densLabel()}}
   setSpeed(p.speed||1);syncRangeUI();
   markPreset(i);applyFormula();
 }
@@ -4839,7 +5041,7 @@ function setStyle(st){
   setDis("#rowEqual",!S.L.arrows);schedule(false,0);renderActs();hashSoon();syncDock();
 }
 function setBg(bg){
-  S.bg=bg;document.querySelectorAll("#bgSeg button").forEach(x=>{const on=x.dataset.bg===bg;x.classList.toggle("on",on);x.setAttribute("aria-pressed",on)});
+  S.bg=bg;if(bg==="none")updateBgNote();document.querySelectorAll("#bgSeg button").forEach(x=>{const on=x.dataset.bg===bg;x.classList.toggle("on",on);x.setAttribute("aria-pressed",on)});
   schedule(true,0);renderActs();
 }
 function setLayer(k,on){
@@ -4939,7 +5141,7 @@ function redistribute3D(oR){
   const R=S.R,C=S.c3,keep=Math.min(1,Math.pow(oR/R,3)),grow=R>oR;
   for(const p of P){
     const h=p.h,L=h?h.length-4:-1,l=L>=0?[h[L],h[L+1],h[L+2]]:null;
-    if(l&&inBox(l,1)&&(keep>=1||Math.random()<keep))continue;
+    if(l&&inBox(l,1)&&(keep>=1||Math.random()<keep)){trailScale(p,R/oR,4);continue}
     for(let k=0;k<40;k++){spawn3D(p);const q=p.h;if(!grow||Math.max(Math.abs(q[0]-C[0]),Math.abs(q[1]-C[1]),Math.abs(q[2]-C[2]))>oR)break}
     p.age=Math.random()*p.life*0.6;
   }
@@ -4958,12 +5160,17 @@ function goHome(){
 sR.addEventListener("input",()=>{const r=Math.pow(10,+sR.value);
   if(S.mode==="2d")changeView(r,S.c.x+padV()-padW(r),S.c.y-padVy()+padWy(r),120);else{Z3=null;setR3(r,120)}});
 smoothRange(sR);smoothRange(sD);smoothRange(sV);
-sD.addEventListener("input",()=>{const d=rv(sD);if(d===S.dens[S.mode])return;S.dens[S.mode]=d;if(S.mode==="2d")S.densAuto=false;densLabel();schedule(true,0)});
+sD.addEventListener("input",()=>{const d=rv(sD);if(d===S.dens[S.mode])return;S.dens[S.mode]=d;if(S.mode==="2d")S.densAuto=false;else{if(A3.length)fade3(300);LV3.k=null}densLabel();schedule(true,0)});
 sV.addEventListener("input",()=>{if(!S.L.particles)setPT(true);const v=Math.pow(2,rv(sV));if(Math.abs(v-S.speed)<1e-9)return;setSpeed(v,true);if(S.mode==="2d")updateReadout()});
 document.querySelectorAll("#styleSeg button").forEach(b=>b.addEventListener("click",()=>setStyle(b.dataset.st)));
 document.querySelectorAll("#bgSeg button").forEach(b=>b.addEventListener("click",()=>setBg(b.dataset.bg)));
 $("#tP").addEventListener("change",e=>setPT(e.target.checked));
-$("#tN").addEventListener("change",e=>{S.normalize=e.target.checked;if(S.mode==="2d")drawArrows2D();dirty=true});
+$("#tN").addEventListener("change",e=>{S.normalize=e.target.checked;nmAnim();if(S.mode==="2d")drawArrows2D();dirty=true});
+/* 等长箭头的开关：每支箭头的长度在约 0.38 秒内，从按大小定的长度平滑地变到等长（关掉时再变回去） */
+let NMA=null;
+function nmL(r){const v=S.nmv||0,q=Math.min(1,r);return v<=0?q:v>=1?1:q+(1-q)*v}
+function nmAnim(){const to=S.normalize?1:0;if(reduce){S.nmv=to;NMA=null;return}NMA={t0:performance.now(),from:S.nmv||0,to}}
+function nmStep(){if(!NMA)return;const u=Math.min(1,(performance.now()-NMA.t0)/380),k=u<0.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;S.nmv=NMA.from+(NMA.to-NMA.from)*k;if(u>=1){S.nmv=NMA.to;NMA=null}dirty=true;if(S.mode==="2d"&&!G2.ok)drawArrows2D()}
 $("#tS").addEventListener("change",e=>setLayer("sl",e.target.checked));
 $("#tEQ").addEventListener("change",e=>setLayer("equil",e.target.checked));
 $("#tNC").addEventListener("change",e=>setLayer("nullc",e.target.checked));
@@ -5014,15 +5221,16 @@ $("#bHome").addEventListener("click",goHome);
 
 /* ================= 模式切换 ================= */
 function saveView(){S.views[S.mode]=S.mode==="2d"?{R:S.R,c:{x:S.c.x+padV(),y:S.c.y-padVy()}}:{R:S.R,c3:S.c3.slice()}}
-const TWO_ONLY=["#rowBg","#rowNC"];
+const TWO_ONLY=["#rowNC"];
 function setMode(m){
-  const wasMode=S.mode;S.mode=m;S.eq=[];S.sep=null;S.eqSel=-1;S.eqHot=-1;camT=null;camG=null;GZH=null;ZT=null;Z3=null;AN3=null;PN=null;PI=null;PB=null;VA=null;AN=null;AF=[];STF=null;vel.yaw=vel.pitch=0;const two=m==="2d";F3=null;A3L=null;sizeLayers();clearLayers();
+  const wasMode=S.mode;S.mode=m;LV3.k=null;S.eq=[];S.sep=null;S.eqSel=-1;S.eqHot=-1;camT=null;camG=null;GZH=null;ZT=null;Z3=null;AN3=null;PN=null;PI=null;PB=null;VA=null;AN=null;AF=[];STF=null;vel.yaw=vel.pitch=0;const two=m==="2d";F3=null;A3L=null;sizeLayers();clearLayers();
   $("#m2").classList.toggle("on",two);$("#m3").classList.toggle("on",!two);
   $("#m2").setAttribute("aria-pressed",two);$("#m3").setAttribute("aria-pressed",!two);
   stage.classList.toggle("three",!two);$("#comps").classList.toggle("d3",!two);
   $("#sig").textContent=two?"F : ℝ² → ℝ²":"F : ℝ³ → ℝ³";
   setHid($("#rowR"),two);setHid($("#rowView"),two);
   for(const s of TWO_ONLY)setDis(s,!two,t("only2d"));
+  {const cb=$('#bgSeg button[data-bg="curl"]');cb.disabled=false;cb.classList.remove("dis");cb.title=""}
   syncDock();
   $("#lP").textContent=two?"P(x, y) =":"P(x, y, z) =";
   $("#lQ").textContent=two?"Q(x, y) =":"Q(x, y, z) =";
@@ -5046,6 +5254,7 @@ function renderKeys(){
 }
 function applyLang(l){
   LANG=l;try{localStorage.setItem("vf-lang",l)}catch(e){}
+  updateBgNote(true);
   document.documentElement.lang=l==="zh"?"zh-CN":"en";
   document.title=t("docTitle");
   document.querySelectorAll("[data-t]").forEach(el=>{el.textContent=t(el.dataset.t)});
@@ -5075,7 +5284,7 @@ const capC=$("#capC"),capTg=$("#capTg"),fEdit=$("#fEdit"),feRows=$("#feRows"),fe
 function capWidth(){const g=$("#roP");if(!g)return;const w=Math.ceil(g.scrollWidth)+28+2;capC.style.setProperty("--capw",Math.max(250,w)+"px")}
 function setCapOpen(on){capC.classList.toggle("open",on);capTg.setAttribute("aria-expanded",on?"true":"false");capTg.dataset.tt=on?"capLess":"capMore";capTg.title=t(capTg.dataset.tt);if(on)requestAnimationFrame(capWidth)}
 capTg.addEventListener("click",()=>setCapOpen(!capC.classList.contains("open")));
-if(window.ResizeObserver)new ResizeObserver(()=>{if(drL.classList.contains("open"))placeDrawer();if(!fEdit.hidden)placeFE();capFit()}).observe($(".tl"));
+if(window.ResizeObserver)new ResizeObserver(()=>{if(drL.classList.contains("open"))placeDrawer();if(!fEdit.hidden)placeFE();capFit();lgPlace()}).observe($(".tl"));
 /* 点式子：弹出小窗改 P、Q（三维还有 R），回车应用，Esc 取消；写回面板里的输入框，走原来的那套解析和报错 */
 function placeFE(){fEdit.style.setProperty("--fe-top",(capC.offsetTop+capC.offsetHeight+8)+"px")}
 function openFE(){
@@ -5103,17 +5312,41 @@ function applyFE(){
 $("#cap").addEventListener("click",()=>{if(!shown(fEdit))openFE();else closeFE()});
 $("#feOk").addEventListener("click",applyFE);$("#feNo").addEventListener("click",closeFE);
 document.addEventListener("pointerdown",e=>{if(shown(fEdit)&&!fEdit.contains(e.target)&&!$("#cap").contains(e.target))closeFE()},true);
+/* 全屏的进出动画（真全屏和退而求其次的“铺满窗口”都一样）：
+   · 进去时，画板从原来的位置和大小展开到整个屏幕——可见区域从原来那块圆角矩形长到全屏，里面的内容同时淡入；
+   · 退出时，一块和全屏背景一样的暗色从整个屏幕收拢到画板原来的位置，最后淡掉，画板里的内容同时淡入。
+   按 Esc 退出也一样有动画 */
+const FSA={r0:null};
+function fsAnimEnter(){
+  const r0=FSA.r0;FSA.r0=null;if(!r0||reduce||!SM.ready)return;
+  /* 不等下一帧：浏览器刚切到全屏、还没画出来之前就开始裁剪，免得先闪一下全屏的画面 */
+  {
+    const r1=stage.getBoundingClientRect(),t=Math.max(0,r0.top-r1.top),l=Math.max(0,r0.left-r1.left),r=Math.max(0,r1.right-r0.right),b=Math.max(0,r1.bottom-r0.bottom);
+    stage.animate([{clipPath:"inset("+t+"px "+r+"px "+b+"px "+l+"px round 18px)"},{clipPath:"inset(0px 0px 0px 0px round 0px)"}],{duration:460,easing:"cubic-bezier(.22,.8,.25,1)"});
+    const v=stage.querySelector(".view");if(v)v.animate([{opacity:0.4},{opacity:1}],{duration:400,easing:"ease-out"});
+  }
+}
+function fsAnimExit(){
+  if(reduce||!SM.ready)return;
+  {
+    const r=stage.getBoundingClientRect(),vw=document.documentElement.clientWidth,vh=innerHeight,o=document.createElement("div");o.className="fs-veil";document.body.appendChild(o);
+    const end="inset("+Math.max(0,r.top)+"px "+Math.max(0,vw-r.right)+"px "+Math.max(0,vh-r.bottom)+"px "+Math.max(0,r.left)+"px round 18px)";
+    const a=o.animate([{clipPath:"inset(0px 0px 0px 0px round 0px)",opacity:1},{clipPath:end,opacity:0.92,offset:0.72},{clipPath:end,opacity:0}],{duration:460,easing:"cubic-bezier(.3,.7,.2,1)",fill:"forwards"});
+    a.onfinish=a.oncancel=()=>o.remove();
+    const v=stage.querySelector(".view");if(v)v.animate([{opacity:0.4},{opacity:1}],{duration:420,delay:120,easing:"ease-out",fill:"backwards"});
+  }
+}
 function updateFS(){
   const max=stage.classList.contains("max"),on=realFS()===stage||max;
   stage.classList.toggle("is-fs",on);
-  if(on!==fsWas){fsWas=on;if(on)enterDrawers();else leaveDrawers()}
+  if(on!==fsWas){fsWas=on;if(on){enterDrawers();fsAnimEnter()}else{leaveDrawers();fsAnimExit()}}
   fsBtn.setAttribute("aria-label",t(on?"fsExit":"fs"));fsBtn.title=t(on?"fsExit":"fs");
   document.documentElement.style.overflow=max?"hidden":"";
 }
 function toggleFS(){
   if(stage.classList.contains("max")){stage.classList.remove("max");updateFS();return}
   if(realFS()){const ex=document.exitFullscreen||document.webkitExitFullscreen;try{const r=ex&&ex.call(document);if(r&&r.catch)r.catch(()=>{})}catch(e){}return}
-  const req=stage.requestFullscreen||stage.webkitRequestFullscreen;
+  const req=stage.requestFullscreen||stage.webkitRequestFullscreen;FSA.r0=stage.getBoundingClientRect();
   const fallback=()=>{if(!realFS()){stage.classList.add("max");updateFS()}};
   if(!req){fallback();return}
   try{const r=req.call(stage);if(r&&r.then)r.then(updateFS,fallback);else setTimeout(fallback,250)}catch(e){fallback()}
@@ -5198,12 +5431,12 @@ cv.addEventListener("pointerdown",e=>{
     if(gk!==null){try{cv.releasePointerCapture(e.pointerId)}catch(_){}if(gk>=0)goView(VIEWS[GZV[gk]]);return}
   }
   ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  camT=null;ZT=null;PN=null;PI=null;VA=null;vel.yaw=vel.pitch=0;hideTip();
+  camT=null;ZT=null;PN=null;PI=null;VA=null;vel.yaw=vel.pitch=0;hideTip();if(PTC.mode==="intro"&&!nearProbe(e))ptcSet(null);
   if(ptrs.size===1){
     const[sx,sy]=localXY(e);
     const hk=DM&&DM.hit?DM.hit(sx,sy,e.pointerType):null;
     if(hk){drag={type:"demo",k:hk};stage.classList.add("grabbing")}
-    else if(nearProbe(e)){const[px,py]=probeScreen();drag={type:"probe",ox:px-sx,oy:py-sy};setHot(true);stage.classList.add("grabbing")}
+    else if(nearProbe(e)){const[px,py]=probeScreen();drag={type:"probe",ox:px-sx,oy:py-sy,cx:e.clientX,cy:e.clientY,t0:e.timeStamp,mv:0};setHot(true);stage.classList.add("grabbing")}
     else if(S.mode==="3d")drag={type:"rotate"};
     else if(S.tool==="pen"){drag={type:"pen",sx,sy,mx:0,pt:e.pointerType};startPath(sx,sy)}
     else drag={type:"pend",sx,sy,pt:e.pointerType};
@@ -5238,6 +5471,7 @@ cv.addEventListener("pointermove",e=>{
   const[sx,sy]=localXY(e);
   if(drag.type==="demo"){if(DM&&DM.drag)DM.drag(drag.k,sx,sy,cur,prev);dirty=true;return}
   if(drag.type==="probe"){
+    drag.mv=Math.max(drag.mv,Math.hypot(cur.x-drag.cx,cur.y-drag.cy));
     if(S.mode==="2d"){const v=V,tx=clamp(S.c.x+(sx+drag.ox-W/2)/v.sc,v.xmin,v.xmax),ty=clamp(S.c.y-(sy+drag.oy-H/2)/v.sc,v.ymin,v.ymax);if(reduce)S.hover={x:tx,y:ty};else PB={x:tx,y:ty}}
     else{
       setPJ();
@@ -5273,6 +5507,7 @@ const up=e=>{
       /* 几乎没动就是“点一下”：画一条流线；动了才是画路径 */
       if(mv<(drag.pt==="mouse"?5:10)){S.drawing=null;S.drawPx=null;dirty=true;penTap(drag.sx,drag.sy,drag.pt)}else{addPathPoint(sx,sy,true);finishPath()}}else{S.drawing=null;S.drawPx=null;dirty=true}}
     else if(drag.type==="pan")panRelease(drag.hist,e.timeStamp);
+    else if(drag.type==="probe"&&e.type==="pointerup"&&drag.mv<(e.pointerType==="mouse"?4:9)&&e.timeStamp-drag.t0<500)ptcToggle();
   }
   if(!drag||drag.type!=="rotate"||reduce||e.timeStamp-lastMove>90){vel.yaw=vel.pitch=0}
   if(drag&&drag.type==="probe"&&e.pointerType!=="mouse")setHot(false);
@@ -5417,7 +5652,7 @@ function applyHash(h){
   S.views[m]=m==="2d"?{R:st.R,c:{x:st.c[0],y:st.c[1]}}:{R:st.R,c3:st.c.slice(0,3)};
   setMode(m);
 }
-addEventListener("hashchange",()=>{const h=(location.hash||"").replace(/^#/,"");if(h===lastHash)return;lastHash=h;const s=parseHash(h);if(s)applyHash(s)});
+addEventListener("hashchange",()=>{const h=(location.hash||"").replace(/^#/,"");if(h===lastHash)return;lastHash=h;const s=parseHash(h);if(!s)return;if(s.m!==S.mode)sceneSwap(()=>applyHash(s));else switchField(()=>applyHash(s),s.preset!==undefined&&presetSameView(s.preset))});
 
 /* ================= 保存图片 ================= */
 const bSave=$("#bSave");let DL=null;
@@ -5529,15 +5764,18 @@ function ttHTML(n){
 }
 function ttUnlink(){if(TT.desc){TT.desc.removeAttribute("aria-describedby");TT.desc=null}}
 function ttShow(n){
-  if(!n.isConnected)return;const html=ttHTML(n);if(!html)return;
+  if(!n.isConnected)return;const pr=typeof PROBE_TIP!=="undefined"&&n===PROBE_TIP,html=pr?probeTipHTML():ttHTML(n);if(!html)return;
   if(!TT.el){TT.el=document.createElement("div");TT.el.className="tt";TT.el.id="ttip";TT.el.setAttribute("role","tooltip");TT.el.hidden=true}
   const el=TT.el,host=ttHost();if(el.parentNode!==host)host.appendChild(el);
-  el.innerHTML=html;el.hidden=false;el.classList.remove("on");
-  const r=n.getBoundingClientRect(),w=el.offsetWidth,h=el.offsetHeight,vw=document.documentElement.clientWidth,vh=innerHeight;
-  const x=Math.max(8,Math.min(vw-w-8,r.left+r.width/2-w/2));let y=r.top-h-9;if(y<8)y=Math.min(vh-h-8,r.bottom+9);
-  el.style.left=Math.round(x)+"px";el.style.top=Math.round(y)+"px";
+  el.innerHTML=html;el.hidden=false;el.classList.remove("on");el.classList.toggle("tt-probe",pr);
+  ttPlace(n);
   ttUnlink();TT.cur=n;if(!n.hasAttribute("aria-describedby")){n.setAttribute("aria-describedby","ttip");TT.desc=n}
   void el.offsetWidth;el.classList.add("on");
+}
+function ttPlace(n){
+  const el=TT.el,r=n.getBoundingClientRect(),w=el.offsetWidth,h=el.offsetHeight,vw=document.documentElement.clientWidth,vh=innerHeight;
+  const x=Math.max(8,Math.min(vw-w-8,r.left+r.width/2-w/2));let y=r.top-h-9;if(y<8)y=Math.min(vh-h-8,r.bottom+9);
+  el.style.left=Math.round(x)+"px";el.style.top=Math.round(y)+"px";
 }
 function ttHide(){clearTimeout(TT.timer);TT.timer=0;if(TT.cur){TT.cur=null;TT.warm=performance.now()}ttUnlink();if(TT.el){TT.el.classList.remove("on");TT.el.hidden=true}}
 document.addEventListener("pointerover",e=>{
@@ -5634,13 +5872,65 @@ abCopy.addEventListener("click",copyMail);
 const PROBE_TIP={isConnected:true,dataset:{},hasAttribute:()=>true,setAttribute(){},removeAttribute(){},contains:()=>false,matches:()=>true,_near:false,
   getBoundingClientRect(){const r=cv.getBoundingClientRect(),q=probeScreen(),x=r.left+q[0],y=r.top+q[1];return{left:x-9,top:y-9,right:x+9,bottom:y+9,width:18,height:18}}};
 let ptT=0;
+/* ===== 探针卡片 =====
+   · 打开网页时先自己弹出来，让人知道有这么一张卡片；鼠标第一次在画布里移动（或在画布上按下）时收起——只有这一次。
+   · 之后：鼠标停在探针上就显示，移开就收起；点一下探针，卡片就常驻、跟着探针走（照样可以拖动探针），
+     再点一下探针或点卡片上的 × 就收起 */
+var PTC={el:null,mode:null};
+function ptcEl(){if(!PTC.el){const d=document.createElement("div");d.className="tt tt-probe ptcard";d.setAttribute("role","status");d.hidden=true;d.innerHTML='<div class="pt-in"></div>';$(".vp").appendChild(d);PTC.el=d;PTC.inner=d.firstChild}return PTC.el}
+function probeRowsHTML(){
+  if(!S.F)return"";const two=S.mode==="2d";let p,f,J,dv,cu;
+  if(two){const h=S.hover;p=[h.x,h.y];f=S.F(h.x,h.y);J=jac(h.x,h.y,0);dv=J[0][0]+J[1][1];cu=fmt(J[1][0]-J[0][1])}
+  else{const q=S.probe3;p=[q.x,q.y,q.z];f=S.F(q.x,q.y,q.z);J=jac(q.x,q.y,q.z);dv=J[0][0]+J[1][1]+J[2][2];cu="("+[J[2][1]-J[1][2],J[0][2]-J[2][0],J[1][0]-J[0][1]].map(v=>fmt(v)).join(", ")+")"}
+  const vec=a=>"("+a.map(v=>fmt(v)).join(", ")+")",rows=[[t("ptPos"),vec(p)],["F",vec(f)],["|F|",fmt(Math.hypot(...f))],["div F",fmt(dv)],["curl F",cu]];
+  return rows.map(r=>'<span class="k">'+esc(r[0])+'</span><span class="v">'+esc(r[1])+"</span>").join("");
+}
+function probeTipHTML(){if(!S.F)return"";return'<div class="tt-h"><span><i class="pt-dot"></i>'+esc(t("tipProbe"))+'</span></div><div class="pt-g">'+probeRowsHTML()+'</div><div class="tt-d">'+esc(t(PTC.mode==="pin"?"tdProbePin":"tdProbe"))+"</div>"}
+function ptcRender(){
+  const el=ptcEl(),pin=PTC.mode==="pin";el.classList.toggle("m3",S.mode==="3d");
+  PTC.inner.innerHTML=probeTipHTML();
+  let x=el.querySelector(":scope>.pt-x");
+  if(pin&&!x){el.insertAdjacentHTML("beforeend",'<button type="button" class="pt-x" aria-label="'+esc(LANG==="zh"?"收起":"Close")+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>');
+    el.querySelector(":scope>.pt-x").addEventListener("click",ev=>{ev.stopPropagation();ptcSet(null)})}
+  else if(!pin&&x)x.remove();
+  el.classList.toggle("pinned",pin);
+}
+/* 只换读数，不重建整张卡片（免得正要点 × 的时候按钮被换掉） */
+function ptcRefresh(){const el=PTC.el;if(!PTC.mode||!el||el.hidden)return;el.classList.toggle("m3",S.mode==="3d");const g=el.querySelector(".pt-g");if(g)g.innerHTML=probeRowsHTML();ptcPlace()}
+function ptcSet(mode){
+  const was=PTC.mode,el=ptcEl();PTC.mode=mode;
+  if(!mode){el.classList.remove("on");el.hidden=true;PTC.w=PTC.h=PTC.s=null;return}
+  if(was!==mode)ptcRender();el.hidden=false;if(!was){PTC.w=PTC.h=PTC.s=null}ptcPlace();if(!was){void el.offsetWidth;el.classList.add("on")}
+}
+function ptcToggle(){ptcSet(PTC.mode==="pin"?null:"pin")}
+/* 卡片放在探针上方，放不下就翻到下方；不出画布；探针移出画布时先藏起来。
+   · 大小：里面内容的自然大小是目标，卡片的宽、高按约 0.12 秒的时间常数平滑地变过去（读数变长、常驻时说明换了、二维三维切换都一样）；
+   · 翻转：上下换边时有一点回差，换边的过程约 0.28 秒，卡片从探针上方移到下方，中途稍微压扁、变淡，像翻过去一样；
+     平时紧跟探针，不拖后 */
+function ptcPlace(){
+  const el=PTC.el;if(!PTC.mode||!el||el.hidden)return;
+  const now=performance.now(),dt=Math.min(0.1,PTC.t?(now-PTC.t)/1000:0);PTC.t=now;
+  const vp=$(".vp"),q=probeScreen(),cr=cv.getBoundingClientRect(),vr=vp.getBoundingClientRect(),px=cr.left-vr.left+q[0],py=cr.top-vr.top+q[1];
+  const off=!(q[0]>=-4&&q[1]>=-4&&q[0]<=cr.width+4&&q[1]<=cr.height+4);el.style.visibility=off?"hidden":"";if(off)return;
+  const tw=PTC.inner.offsetWidth,th=PTC.inner.offsetHeight,k=reduce||PTC.w==null?1:1-Math.exp(-dt/0.12);
+  PTC.w=PTC.w==null?tw:PTC.w+(tw-PTC.w)*k;PTC.h=PTC.h==null?th:PTC.h+(th-PTC.h)*k;
+  if(Math.abs(PTC.w-tw)<0.4)PTC.w=tw;if(Math.abs(PTC.h-th)<0.4)PTC.h=th;
+  el.style.width=PTC.w.toFixed(1)+"px";el.style.height=PTC.h.toFixed(1)+"px";
+  const w=PTC.w,h=PTC.h,W0=vp.clientWidth,H0=vp.clientHeight,yA=py-th-14,want=PTC.side===1?(yA>16?0:1):(yA<8?1:0);PTC.side=want;
+  if(PTC.s==null||reduce)PTC.s=want;else{const st=dt/0.28;PTC.s=want>PTC.s?Math.min(want,PTC.s+st):Math.max(want,PTC.s-st)}
+  const e=PTC.s*PTC.s*(3-2*PTC.s),bump=Math.sin(Math.PI*e);
+  const y=Math.max(8,Math.min(H0-h-8,(py-h-14)*(1-e)+(py+14)*e)),x=Math.max(8,Math.min(W0-w-8,px-w/2));
+  el.style.left=x.toFixed(1)+"px";el.style.top=y.toFixed(1)+"px";
+  el.style.setProperty("--pf",(1-0.55*bump).toFixed(3));el.style.setProperty("--psy",(1-0.14*bump).toFixed(3));
+}
 cv.addEventListener("pointermove",e=>{
-  if(e.pointerType!=="mouse"||e.buttons||SD.dlg.open)return;
-  const near=nearProbe(e);PROBE_TIP._near=near;
-  if(near){if(TT.cur!==PROBE_TIP&&!ptT)ptT=setTimeout(()=>{ptT=0;if(PROBE_TIP._near){PROBE_TIP.dataset.tip=t("tipProbe");PROBE_TIP.dataset.tdesc=t("tdProbe");ttShow(PROBE_TIP)}},450)}
-  else{clearTimeout(ptT);ptT=0;if(TT.cur===PROBE_TIP)ttHide()}
+  if(e.pointerType!=="mouse"||SD.dlg.open)return;
+  if(PTC.mode==="intro"){if(nearProbe(e)){PTC.mode="hover";ptcRender()}else ptcSet(null);return}
+  if(PTC.mode==="pin"||e.buttons)return;
+  const near=nearProbe(e);
+  if(near){if(PTC.mode!=="hover")ptcSet("hover")}else if(PTC.mode==="hover")ptcSet(null);
 });
-cv.addEventListener("pointerleave",()=>{clearTimeout(ptT);ptT=0;PROBE_TIP._near=false;if(TT.cur===PROBE_TIP)ttHide()});
+cv.addEventListener("pointerleave",()=>{if(PTC.mode==="hover"&&!ptrs.size)ptcSet(null)});
 
 /* ================= 访问统计（只在 GitHub Pages 上，见 <head> 里的说明） ================= */
 /* “保存图片”记成一个事件；同一个人短时间内连存几张，GoatCounter 只算一次 */
@@ -5675,11 +5965,15 @@ let last=performance.now(),onScreen=true;
 if("IntersectionObserver" in window)new IntersectionObserver(es=>{const v=es[es.length-1].isIntersecting;if(v&&!onScreen)dirty=true;onScreen=v}).observe(stage);
 function loop(ts){
   const raw=ts-last,dt=Math.min(0.05,Math.max(0,raw/1000));last=ts;
+  if(NMA)nmStep();
+  bgStep(dt);
+  if(S.mode==="3d"&&lv3Step())sample3D();
+  if(PTC.mode)ptcPlace();
   if(ZT)zoomStep(dt);
   if(Z3)zoom3Step(dt);
   opsStep(dt);
   /* 粒子用的参考大小平滑跟随（约 0.3 秒），换参考长度时粒子不会突然变快变慢 */
-  S.mrefF=S.mrefF>0?S.mrefF+(S.mref-S.mrefF)*(1-Math.exp(-dt/0.3)):S.mref;
+  {const tg=(S.mode==="2d"?S.mT:(S.mP3||S.mT3))||S.mref;if(tg>0){if(!(S.mrefF>0))S.mrefF=tg;else{const k=1-Math.exp(-dt/0.25),a=Math.log(S.mrefF);S.mrefF=Math.exp(a+(Math.log(tg)-a)*k)}}}
   if(AF.length||STF||PINGROW)dirty=true;
   process();
   if(onScreen&&DM&&DM.tick){DM.tick(dt);if(DM&&DM.anim)dirty=true}
@@ -5872,11 +6166,14 @@ function demoPad(){return DM&&!dmEl.classList.contains("min")&&!matchMedia("(max
 function dmLoad(fd){
   fd.f.forEach((s,j)=>ins[j].value=s);
   if(S.mode==="2d"){const c=fd.c||[0,0];PADX=padTarget2();PADY=padTargetY2();setView2(fd.R||3,c[0],c[1]);S.hover={x:c[0]+S.R/2,y:c[1]+S.R/3}}
-  else{S.R=fd.R||2;S.c3=(fd.c3||[0,0,0]).slice();clampProbe3(true)}
+  else{S.R=fd.R||2;S.c3=(fd.c3||[0,0,0]).slice();clampProbe3(true);LV3.k=null}
   resetDrawings();syncRangeUI();S.fsrc="";applyFormula();syncRangeUI();
   markPreset(-1);note.textContent=t("dmNote");$("#exCnt").textContent=t("dmShort");
 }
-function startDemo(id){
+/* 演示要换到另一种模式（比如在二维里点了三维的演示）、退出演示回到原来的模式：都和顶上的 ℝ²/ℝ³ 开关一样淡出淡入 */
+function startDemo(id){const d=DEMOS[id],want=d.mode==="any"?S.mode:d.mode;if(want!==S.mode){sceneSwap(()=>startDemo0(id));return}startDemo0(id)}
+function stopDemo(restore){if(restore&&DM&&DMsave&&DMsave.mode!==S.mode){sceneSwap(()=>stopDemo0(true));return}stopDemo0(restore)}
+function startDemo0(id){
   /* 从一个演示换到另一个时，保留最初进入演示前的状态，退出时回到那里 */
   if(DM)DM=null;
   else{saveView();
@@ -5888,9 +6185,9 @@ function startDemo(id){
   for(const k of["sl","equil","nullc","sep","wheel"])setLayer(k,false);
   setStyle("arrows");setBg("none");
   d.enter();
-  showEl(dmEl);renderDemoButtons();renderDemoUI();dirty=true;
+  showEl(dmEl);renderDemoButtons();renderDemoUI();dirty=true;lgPlace();
 }
-function stopDemo(restore){
+function stopDemo0(restore){
   if(!DM)return;DM=null;hideEl(dmEl,200);
   const sv=DMsave;DMsave=null;
   if(sv){
@@ -5901,7 +6198,7 @@ function stopDemo(restore){
       setSpeed(sv.speed);setMode(sv.mode);
     }
   }
-  renderDemoButtons();dirty=true;
+  renderDemoButtons();dirty=true;lgPlace();
 }
 function modeClick(m){
   if(S.mode===m)return;
@@ -5929,6 +6226,123 @@ function sceneSwap(fn){
     });
   },150);
 }
+/* 换场（点例子、随机、演示里换示例场、同一模式里的链接）：只让画布淡出，看不见的时候换好，再淡入。
+   可以随时打断：淡入到一半又换了，就从现在的透明度接着淡出，不会一下跳回全亮；淡出途中又换了，只是把要换的场改成最新的那个。
+   新场在看不见的时候直接装好（不做箭头转动的过渡），淡入时就是完整的新场 */
+const FW={phase:"idle",fn:null,timer:0,anims:[]};
+function fwLayers(){return[...document.querySelectorAll(".vp canvas")]}
+function fieldFade(fn){
+  if(!SM.ready||smReduce()||SW.busy){fn();return}
+  FW.fn=fn;if(FW.phase==="out"||FW.phase==="swap")return;
+  const ls=fwLayers();let op=0;for(const e of ls){const v=parseFloat(getComputedStyle(e).opacity);op=Math.max(op,isFinite(v)?v:1)}
+  const dur=Math.max(40,Math.round(130*op));
+  const olds=FW.anims;FW.anims=ls.map(e=>e.animate([{opacity:op},{opacity:0}],{duration:dur,easing:"ease-in",fill:"forwards"}));olds.forEach(x=>x.cancel());
+  FW.phase="out";clearTimeout(FW.timer);FW.timer=setTimeout(fwSwap,dur+10);
+}
+function fwSwap(){
+  FW.phase="swap";const fn=FW.fn;FW.fn=null;
+  S.noMorph=true;try{if(fn)fn()}catch(e){console.error(e)}S.noMorph=false;
+  requestAnimationFrame(()=>{
+    const olds=FW.anims;FW.anims=fwLayers().map(e=>e.animate([{opacity:0},{opacity:1}],{duration:260,easing:"ease-out",fill:"backwards"}));olds.forEach(x=>x.cancel());
+    FW.phase="in";
+    if(FW.fn){const f=FW.fn;FW.fn=null;fieldFade(f);return}
+    const a0=FW.anims[0];if(!a0){FW.phase="idle";return}
+    a0.onfinish=()=>{if(FW.phase==="in"&&FW.anims[0]===a0){FW.phase="idle";FW.anims=[]}};
+  });
+}
+/* ===== 散度、旋度背景是空的：在画布右上角说明为什么，并给一个能看出颜色的例子 ===== */
+var BN={el:null,key:"",on:false,closed:new Set(),via:null};
+/* 只在“看起来有源（或在转），其实散度（或旋度）为 0”的例子上说明为什么。
+   能找到一个长得很像、却真的有散度（或旋度）的例子，就给一个“对比一下”的链接；
+   从链接过去以后，那边的卡片再说明它为什么有，并给一个回来的链接 */
+const BGZ={
+  "2d":{
+    vortex:{curl:{go:"rotation",zh:"点涡看起来在绕着原点转，但离原点越远流得越慢（速度和距离成反比）。放一个小风车：外侧的水比内侧慢，正好抵消了跟着绕圈带来的转动，小风车不会自转。所以除了原点，旋度处处为 0，所有的旋转都集中在原点那一点上。",
+      en:"A point vortex seems to swirl around the origin, but it flows more slowly the farther out you go (its speed falls off as 1/r). Put a tiny paddle wheel in it: the water on its outer side moves slower than on its inner side, exactly cancelling the turn it gets from going round, so the wheel does not spin. Away from the origin the curl is 0; all of the rotation is concentrated at the origin."}},
+    "point-charge":{div:{go:"source",zh:"点电荷看起来在往外散，但越往外越弱（大小和距离成反比），正好抵消了圆周变长：任意画一个不包住原点的小圈，流进来的和流出去的一样多。所以除了原点，散度处处为 0，所有的“源”都集中在原点那一点上。",
+      en:"A point charge seems to spread outward, but it weakens with distance (as 1/r) exactly as fast as the circles grow: around any small loop that does not enclose the origin, as much flows in as flows out. Away from the origin the divergence is 0; all of the source sits at the origin itself."}},
+    dipole:{div:{zh:"看起来是从一个电荷流出、流进另一个电荷，但除了这两个点，处处流进多少就流出多少：散度为 0。源和汇只在两个电荷所在的那两点上。",
+      en:"It looks as if the field pours out of one charge and into the other, but everywhere except those two points as much flows in as flows out: the divergence is 0. The source and the sink sit only at the two charges."}},
+    saddle:{div:{zh:"看起来沿一个方向往里收、沿另一个方向往外散，但拉开多少就压扁多少，正好抵消：散度为 0。",
+      en:"It seems to squeeze in along one direction and spread out along the other — but it stretches exactly as much as it squeezes, so the two cancel: the divergence is 0."}},
+    cylinder:{curl:{zh:"流体绕着圆柱拐弯，看起来在转，但这是势流：每一小块只是顺着弯走，本身并不自转，所以旋度为 0。",
+      en:"The fluid bends around the cylinder and looks as if it turns, but this is a potential flow: each small parcel just follows the bend without spinning, so the curl is 0."}}
+  },
+  "3d":{
+    "charge-3d":{div:{go:"radial",zh:"看起来在往外散，但越往外越弱（和距离的平方成反比），正好抵消了球面积的增大：任意一个不包住原点的小球，流进来的和流出去的一样多。所以除了原点，散度处处为 0，所有的“源”都集中在原点。",
+      en:"It seems to spread outward, but it weakens as 1/r², exactly as fast as the area of a sphere grows: any small ball that does not contain the origin has as much flowing in as out. Away from the origin the divergence is 0; all of the source sits at the origin."}},
+    "magnetic-dipole":{curl:{zh:"磁感线一圈一圈地绕，看起来在转，但磁铁外面没有电流，也就没有旋度：旋度处处为 0。",en:"The field lines loop round and round, so it looks as if it turns — but outside the magnet there is no current, so there is no curl: it is 0 everywhere."},div:{zh:"磁感线从一极出来、回到另一极，看起来像有源有汇，但磁场没有源也没有汇（不存在磁单极子）：散度处处为 0，每一条磁感线都是闭合的。",
+      en:"Field lines leave one pole and come back into the other, so it looks like a source and a sink — but magnetic fields have neither (there are no magnetic monopoles): the divergence is 0 everywhere, and every field line closes on itself."}},
+    wire:{curl:{go:"rotation-z",zh:"导线周围的磁场绕着导线转，看起来在转，但越往外越弱（和距离成反比）：一个小风车外侧受的力比内侧小，正好抵消了绕圈带来的转动，所以除了导线本身，旋度处处为 0，旋度全在有电流的那根导线上。",
+      en:"The magnetic field circles the wire, so it looks as if it turns — but it weakens as 1/r, so a tiny paddle wheel is pushed less on its outer side than on its inner side, exactly cancelling the turn: away from the wire the curl is 0. All of it sits in the wire itself, where the current flows."}},
+    "grad-xyz":{div:{zh:"沿一些方向往外散、沿另一些方向往里收，看起来像有源有汇，但两者正好抵消：散度处处为 0（xyz 是调和函数）。",
+      en:"It spreads out along some directions and gathers in along others, so it looks like there are sources and sinks — but they cancel exactly: the divergence is 0 everywhere (xyz is a harmonic function)."}}
+  }
+};
+const BGC={
+  "2d":{
+    rotation:{curl:{back:"vortex",zh:"旋转和点涡看起来很像，都在绕原点转，但这里离中心越远流得越快（速度和距离成正比），像一整块刚体在转。小风车外侧被推得比内侧快，每一处都会跟着自转，所以旋度处处是 2。",
+      en:"Rotation looks much like the point vortex — both circle the origin — but here the flow gets faster the farther out you go (its speed grows with r), like a solid disc turning. A paddle wheel is pushed harder on its outer side, so it spins everywhere: the curl is 2 at every point."}},
+    source:{div:{back:"point-charge",zh:"源和点电荷看起来很像，都在往外散，但这里越往外流得越快（大小和距离成正比）。任意一个小圈，流出去的都比流进来的多，每一处都在往外冒，所以散度处处是 2。",
+      en:"Source looks much like the point charge — both spread outward — but here the flow gets stronger farther out (it grows with r). Every small loop has more flowing out than in, so the fluid is welling up everywhere: the divergence is 2 at every point."}}
+  },
+  "3d":{
+    "rotation-z":{curl:{back:"wire",zh:"绕 z 轴的转动和导线的磁场看起来很像，都在绕着一根轴转，但这里离轴越远流得越快（和距离成正比），像一整块刚体在转：小风车外侧被推得比内侧快，每一处都在自转，旋度处处是 (0, 0, 2)。",
+      en:"Rotation about z looks much like the field around the wire — both circle an axis — but here the flow gets faster the farther out you go (it grows with r), like a solid body turning: a paddle wheel is pushed harder on its outer side, so it spins everywhere. The curl is (0, 0, 2) at every point."}},
+    radial:{div:{back:"charge-3d",zh:"径向场和点电荷看起来很像，都在往外散，但这里越往外流得越快（和距离成正比）。任意一个小球，流出去的都比流进来的多，每一处都在往外冒，所以散度处处是 3。",
+      en:"Radial looks much like the point charge — both spread outward — but here the flow gets stronger farther out (it grows with r). Every small ball has more flowing out than in, so the divergence is 3 everywhere."}}
+  }
+};
+function bnPlace(){if(!BN.el||BN.el.hidden)return;const tl=$(".tl"),lc=LGC&&!LGC.hidden?LGC:null,below=lc?lc.offsetTop+lc.offsetHeight:tl.offsetTop+tl.offsetHeight;BN.el.style.setProperty("--bn-top",(below+8)+"px")}
+/* 图例卡片放在画布右上角；画布够宽就和式子卡片并排（式子卡片让出右边），窄的时候放到式子下面 */
+const LGC=(()=>{const c=document.createElement("aside");c.className="lgcard";c.appendChild($("#legend"));$(".vp").appendChild(c);return c})();
+function lgPlace(){
+  const vp=$(".vp"),tl=$(".tl");if(!vp||!LGC)return;const on=!DM;if(LGC.hidden===on)LGC.hidden=!on;
+  if(!on){vp.style.setProperty("--lgw","0px");bnPlace();return}
+  const w=LGC.offsetWidth,side=vp.clientWidth-w-36>=260;
+  vp.style.setProperty("--lgw",side?(w+12)+"px":"0px");LGC.style.top=side?"12px":(tl.offsetTop+tl.offsetHeight+8)+"px";bnPlace();
+}
+if(window.ResizeObserver)new ResizeObserver(()=>lgPlace()).observe(LGC);addEventListener("resize",()=>lgPlace());
+function updateBgNote(force){
+  const kind=S.bg,md=S.mode,i=S.preset[md],p=i>=0?PRESETS[md][i]:null,id=p&&p.id;
+  const zero=md==="2d"?kind!=="none"&&!!S.heatZero:kind==="div"?!!S.div3Zero:kind==="curl"&&!!S.curl3Zero,shows=md==="2d"?kind!=="none"&&!S.heatZero&&S.heatScale>0:kind==="div"?S.div3s>0:kind==="curl"&&S.curl3s>0;
+  let card=null;
+  if(!DM&&id){
+    const z=BGZ[md]&&BGZ[md][id]&&BGZ[md][id][kind];if(zero&&z)card={type:"zero",d:z};
+    const c=BGC[md]&&BGC[md][id]&&BGC[md][id][kind],v=BN.via;
+    if(!card&&shows&&c&&v&&v.to===id&&v.kind===kind&&v.mode===md)card={type:"contrast",d:c};
+  }
+  const key=md+"|"+(S.fsig||"")+"|"+kind+"|"+(card?card.type:"");
+  if(!card||BN.closed.has(key)){if(BN.on)bnHide();BN.key=key;if(BN.via&&(BN.via.to!==id||BN.via.kind!==kind||BN.via.mode!==md))BN.via=null;return}
+  if(BN.on&&BN.key===key&&!force)return;
+  BN.key=key;bnShow(kind,card);
+}
+function bnShow(kind,card){
+  if(!BN.el){const el=document.createElement("aside");el.className="bgnote";el.hidden=true;el.setAttribute("role","note");$(".vp").appendChild(el);BN.el=el}
+  const el=BN.el,md=S.mode,d=card.d,zh=LANG==="zh",cur=S.preset[md]>=0?PRESETS[md][S.preset[md]].id:null,nm=x=>{const q=PRESETS[md].find(o=>o.id===x);return q?L2(q.name):x};
+  const word=kind==="div"?(zh?"散度":"divergence"):(zh?"旋度":"curl");
+  const title=card.type==="zero"?(zh?"这里的"+word+"处处为 0":(kind==="div"?"Divergence":"Curl")+" is 0 here"):(zh?"这里有"+word:"Here there is "+word);
+  const tgt=card.type==="zero"?d.go:d.back,gi=tgt?PRESETS[md].findIndex(o=>o.id===tgt):-1;
+  const btn=gi>=0?(card.type==="zero"?(zh?"和「"+nm(tgt)+"」对比一下":"Compare with “"+nm(tgt)+"”"):(zh?"回到「"+nm(tgt)+"」":"Back to “"+nm(tgt)+"”")):"";
+  el.innerHTML='<button type="button" class="bn-x" aria-label="'+esc(zh?"关闭":"Close")+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button><h3>'+esc(title)+"</h3><p>"+esc(L2(d))+"</p>"+(gi>=0?'<button type="button" class="chip-s bn-go">'+esc(btn)+"</button>":"");
+  el.querySelector(".bn-x").addEventListener("click",()=>{BN.closed.add(BN.key);bnHide()});
+  const g=el.querySelector(".bn-go");if(g)g.addEventListener("click",()=>{BN.via={to:tgt,kind,mode:md,from:cur};bnHide();markPreset(gi);switchField(()=>usePreset(gi),presetSameView(gi))});
+  const was=BN.on;BN.on=true;if(el._an){el._an.cancel();el._an=null}el.hidden=false;bnPlace();
+  if(!was&&!reduce)el.animate([{opacity:0,transform:"translateY(-6px)"},{opacity:1,transform:"none"}],{duration:260,easing:"cubic-bezier(.22,.8,.25,1)"});
+}
+function bnHide(){
+  const el=BN.el;BN.on=false;if(!el||el.hidden)return;if(el._an)el._an.cancel();
+  if(reduce){el.hidden=true;return}
+  const a=el.animate([{opacity:1,transform:"none"},{opacity:0,transform:"translateY(-6px)"}],{duration:180,easing:"ease-in",fill:"forwards"});el._an=a;
+  a.onfinish=()=>{if(el._an!==a)return;el._an=null;el.hidden=true;a.cancel()};
+}
+/* 换场时能不能让箭头直接转到新场：看的范围、中心（三维还有格点密度）都不变，箭头在同样的格点上，就转过去；
+   范围或中心变了，格点对不上，才淡出淡入（正在淡出淡入时也接着用淡出淡入，免得两种过渡叠在一起） */
+function sameView2(R,cx,cy){const sc=V.sc||1,tol=1e-6*Math.max(1,R);return Math.abs(clamp(R,RMIN,RMAX)-S.R)<tol&&Math.abs(S.c.x+PADX/sc-cx)<tol&&Math.abs(S.c.y-PADY/sc-cy)<tol}
+function sameView3(R,c3,n){const tol=1e-9*Math.max(1,R);return Math.abs(R-S.R)<tol&&[0,1,2].every(k=>Math.abs((c3[k]||0)-S.c3[k])<tol)&&(n==null||n===S.dens["3d"])}
+function presetSameView(i){const p=PRESETS[S.mode][i];if(!p)return false;return S.mode==="2d"?sameView2(p.R,(p.c||[0,0])[0],(p.c||[0,0])[1]):sameView3(p.R,p.c3||[0,0,0],p.n)}
+function demoSameView(fd){if(!fd)return false;return S.mode==="2d"?sameView2(fd.R||3,(fd.c||[0,0])[0],(fd.c||[0,0])[1]):sameView3(fd.R||2,fd.c3||[0,0,0],null)}
+function switchField(fn,same){if(same&&FW.phase==="idle")fn();else fieldFade(fn)}
 const DEMO_LIST=["path","green","gauss","stokes"];
 function renderDemoButtons(){
   const box=$("#demos");if(!box)return;box.innerHTML="";
@@ -5979,7 +6393,7 @@ function renderDemoUI(){
   dmT.textContent=L2(DM.name);
   dmO.innerHTML="";
   DM.fieldList().forEach((fd,i)=>{const b=document.createElement("button");b.type="button";b.className="chip-s"+(i===DM.fi?" on":"");b.textContent=L2(fd.name);
-    b.addEventListener("click",()=>{if(i===DM.fi)return;DM.playing=false;DM.pick(i);renderDemoUI()});dmO.appendChild(b)});
+    b.addEventListener("click",()=>{if(i===DM.fi)return;DM.playing=false;dmO.querySelectorAll(".chip-s").forEach((x,k)=>x.classList.toggle("on",k===i));switchField(()=>{if(!DM)return;DM.pick(i);renderDemoUI()},demoSameView(DM.fieldList()[i]))});dmO.appendChild(b)});
   dmC.innerHTML="";if(DM.controls)DM.controls(dmC);dmC.hidden=!dmC.children.length;
   updateDemoInfo();placeDemoCard();fixDemoText();
 }
@@ -6503,7 +6917,7 @@ readTheme();renderViews();setSpeed(1);setStyle("arrows");setBg("none");
 const h0=parseHash(lastHash);
 if(h0&&h0.st)applyHash(h0);
 else{setMode(h0?h0.m:"2d");if(h0)usePreset(h0.preset)}
-applyLang(LANG);document.querySelectorAll(".seg").forEach(s=>initSeg(s));resize();initSave();requestAnimationFrame(()=>document.querySelectorAll(".topbar .seg").forEach(s=>placeInd(s,true)));initTip();{const kj=$("#katexJs");if(window.katex)onKatex();else if(kj)kj.addEventListener("load",onKatex)}if(window.VF_STATS_MSG)setTimeout(()=>toast(t(window.VF_STATS_MSG)),500);requestAnimationFrame(loop);
+applyLang(LANG);document.querySelectorAll(".seg").forEach(s=>initSeg(s));resize();initSave();setTimeout(()=>{if(!PTC.mode&&!DM)ptcSet("intro")},700);requestAnimationFrame(()=>document.querySelectorAll(".topbar .seg").forEach(s=>placeInd(s,true)));initTip();{const kj=$("#katexJs");if(window.katex)onKatex();else if(kj)kj.addEventListener("load",onKatex)}if(window.VF_STATS_MSG)setTimeout(()=>toast(t(window.VF_STATS_MSG)),500);requestAnimationFrame(loop);
 })();
 </script>
 </body>
