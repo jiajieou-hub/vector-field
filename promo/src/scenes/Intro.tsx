@@ -20,7 +20,7 @@ export const Intro: React.FC = () => {
         style={{
           width: 1920,
           height: 1080,
-          scale: interpolate(frame, [0, 150], [1.3, 1.2], {
+          scale: interpolate(frame, [0, 120], [1.3, 1.2], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           }),
@@ -50,11 +50,11 @@ export const Intro: React.FC = () => {
             fontSize: 136,
             letterSpacing: "-0.01em",
             color: "#ece6d8",
-            opacity: interpolate(frame, [8, 34], [0, 1], {
+            opacity: interpolate(frame, [4, 24], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             }),
-            translate: interpolate(frame, [8, 40], ["0px 30px", "0px 0px"], {
+            translate: interpolate(frame, [4, 28], ["0px 30px", "0px 0px"], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
               easing: Easing.bezier(0.16, 1, 0.3, 1),
@@ -72,7 +72,7 @@ export const Intro: React.FC = () => {
             fontSize: 46,
             letterSpacing: "0.3em",
             color: "#b9b2a3",
-            opacity: interpolate(frame, [22, 46], [0, 1], {
+            opacity: interpolate(frame, [14, 32], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             }),
@@ -87,11 +87,11 @@ export const Intro: React.FC = () => {
             fontFamily: sans,
             fontSize: 50,
             color: "#f3c96f",
-            opacity: interpolate(frame, [44, 68], [0, 1], {
+            opacity: interpolate(frame, [26, 44], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             }),
-            translate: interpolate(frame, [44, 72], ["0px 18px", "0px 0px"], {
+            translate: interpolate(frame, [26, 48], ["0px 18px", "0px 0px"], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
               easing: Easing.bezier(0.16, 1, 0.3, 1),

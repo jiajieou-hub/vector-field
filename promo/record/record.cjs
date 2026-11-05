@@ -109,10 +109,17 @@ class Rec {
       if (!hash.match(/^(lorenz|aizawa|thomas|halvorsen|rossler|rotation-z|helix|radial|sink|grad-xyz|charge-3d|magnetic-dipole|wire|abc)$/)) await p.evaluate(() => window.__vf.center2());
     }
     await this.tick(Math.round(warm * FPS));
-    if (!hideUI) await this.cursor();
+    /* the probe card pops up on first load and folds away on the first mouse move over the plot */
+    if (!hideUI) { await p.mouse.move(VW / 2, VH / 2); await this.tick(4); await this.cursor(); }
   }
 
   async close() { await this.ctx.close(); }
+  /* press the plot's full-screen button (bottom right) without filming it; the interface stays */
+  async fullscreenUI() {
+    await this.eval(() => document.querySelector('#fs').click());
+    await this.tick(30);
+    await this.page.mouse.move(VW / 2, VH / 2); await this.tick(4);
+  }
   async tick(n = 1) { for (let i = 0; i < n; i++) await this.page.evaluate((dt) => window.__tick(dt), 1000 / FPS); }
   async cursor() { await this.page.evaluate(([x, y, d]) => window.__cursor(x, y, d), [this.mx, this.my, this.down]); }
 
@@ -147,7 +154,7 @@ class Rec {
     const n = Math.max(1, Math.round(sec * FPS));
     for (let i = 1; i <= n; i++) { await fn(i / n); await this.frame(); }
   }
-  async moveTo(x, y, sec = 0.6) {
+  async moveTo(x, y, sec = 0.45) {
     const x0 = this.mx, y0 = this.my;
     await this.during(sec, async (t) => {
       const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -157,13 +164,13 @@ class Rec {
   }
   async press() { this.down = true; await this.page.mouse.down(); await this.cursor(); }
   async release() { this.down = false; await this.page.mouse.up(); await this.cursor(); }
-  async click(x, y, sec = 0.6) {
+  async click(x, y, sec = 0.45) {
     await this.moveTo(x, y, sec); await this.frame(2);
     await this.press(); await this.frame(3); await this.release(); await this.frame(2);
   }
   /* drag along a list of points, reaching each in turn at a steady speed */
   async drag(pts, sec) {
-    await this.moveTo(pts[0][0], pts[0][1], 0.6); await this.frame(2); await this.press(); await this.frame(2);
+    await this.moveTo(pts[0][0], pts[0][1], 0.45); await this.frame(2); await this.press(); await this.frame(2);
     const seg = []; let L = 0;
     for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); seg.push(l); L += l; }
     await this.during(sec, async (t) => {
@@ -209,46 +216,49 @@ const CLIPS = {
     r.start('bg'); await r.hold(9); r.finish();
   },
 
-  /* Typing a field, then switching how it is drawn */
+  /* Typing a field (window), then switching how it is drawn (full screen) */
   async type(r) {
     await r.open('rotation');
     r.start('type');
-    await r.hold(0.6);
-    await r.clickSel('#fP');
-    await r.key('Control+A'); await r.type('sin(y)');
-    await r.hold(0.5);
-    await r.clickSel('#fQ', 0.5);
-    await r.key('Control+A'); await r.type('sin(x)');
-    await r.hold(2.6);
+    await r.hold(0.3);
+    await r.clickSel('#fP', 0.5);
+    await r.key('Control+A'); await r.type('sin(y)', 14);
+    await r.hold(0.3);
+    await r.clickSel('#fQ', 0.4);
+    await r.key('Control+A'); await r.type('sin(x)', 14);
+    await r.hold(1.5);
     r.finish();
 
+    await r.fullscreenUI();
+    r.mx = VW * 0.62; r.my = VH * 0.55; await r.cursor();
     r.start('styles');
-    await r.hold(0.4);
-    await r.clickSel('.mid .tg[data-k=stream]', 0.7); await r.hold(1.4);
-    await r.clickSel('.mid .tg[data-k=arrows]', 0.5); await r.hold(1.4);
+    await r.hold(0.3);
+    await r.clickSel('.mid .tg[data-k=stream]'); await r.hold(0.8);
+    await r.clickSel('.mid .tg[data-k=arrows]', 0.35); await r.hold(0.8);
     /* (sin y, sin x) has zero divergence, so go straight to the curl heat-map */
-    await r.clickSel('#bgSeg button[data-bg=curl]', 0.9); await r.hold(3.2);
+    await r.clickSel('#bDrL', 0.5); await r.hold(0.2);
+    await r.clickSel('#bgSeg button[data-bg=curl]'); await r.hold(0.3);
+    await r.clickSel('#bDrL', 0.4); await r.hold(1.5);
     r.finish();
   },
 
-  /* Shear flow: straight streamlines, yet the paddle wheel turns */
+  /* Shear flow, full screen: straight streamlines, yet the paddle wheel turns */
   async probe(r) {
     await r.open('shear');
-    await r.eval(() => { const b = document.querySelectorAll('#acts2 button'); b[0].click(); });
-    await r.tick(30);
+    await r.eval(() => { const b = document.querySelectorAll('#acts2 button'); b[0].click(); b[1].click(); }); // curl background, paddle wheel
+    await r.fullscreenUI();
+    await r.tick(20);
     r.start('probe');
-    await r.hold(0.4);
-    await r.clickSel('#acts2 button:nth-child(2)', 0.7);
-    await r.hold(0.5);
+    await r.hold(0.3);
     const [px, py] = await r.eval(() => window.__vf.probe());
     const p = async (x, y) => r.w2s(x, y);
-    const path = [[px, py], await p(1.2, 0.2), await p(0.2, -1.2), await p(-1.6, -0.4), await p(-0.6, 1.4)];
-    await r.drag(path, 4.2);
-    await r.hold(1.2);
+    const path = [[px, py], await p(1.4, 0.1), await p(0.3, -1.3), await p(-1.8, -0.5), await p(-0.8, 1.3)];
+    await r.drag(path, 3.0);
+    await r.hold(0.8);
     r.finish();
   },
 
-  /* Hopf bifurcation: drag the parameter and watch the limit cycle appear */
+  /* Hopf bifurcation (window, the slider is in the side panel): drag a and watch the limit cycle appear */
   async hopf(r) {
     await r.open('hopf');
     await r.eval(() => {
@@ -263,48 +273,51 @@ const CLIPS = {
     await r.moveTo(VW - 380, VH - 200, 0.4);
     await r.tick(40);
     r.start('hopf');
-    await r.hold(0.5);
+    await r.hold(0.3);
     const xAt = await r.slider('#params input[type=range]'), y = xAt.y;
-    await r.drag([[xAt(-0.6), y], [xAt(0.05), y], [xAt(0.9), y]], 4.5);
-    await r.hold(1.8);
+    await r.drag([[xAt(-0.6), y], [xAt(0.05), y], [xAt(0.9), y]], 3.2);
+    await r.hold(1.0);
     r.finish();
   },
 
-  /* Point vortex: draw a loop around the origin */
+  /* Point vortex, full screen: draw a loop around the origin */
   async loop(r) {
     await r.open('vortex');
+    await r.fullscreenUI();
+    r.mx = VW * 0.5; r.my = VH * 0.7; await r.cursor();
     r.start('loop');
-    await r.hold(0.4);
-    await r.clickSel('#bPen', 0.7);
     await r.hold(0.3);
+    await r.clickSel('#bPen', 0.5);
     const pts = [];
     for (let k = 0; k <= 64; k++) {
       const a = -0.6 + (k / 64) * 2 * Math.PI, rr = 1.45 + 0.12 * Math.sin(3 * a + 0.4);
       pts.push(await r.w2s(0.1 + rr * Math.cos(a), 0.05 + rr * Math.sin(a)));
     }
     pts.push(pts[0]);
-    await r.drag(pts, 3.2);
-    await r.hold(0.6);
+    await r.drag(pts, 2.3);
+    await r.hold(0.4);
     await r.key('p'); // leave draw-path mode, so its banner goes away
-    await r.hold(2.6);
+    await r.hold(1.6);
     r.finish();
   },
 
-  /* Green's theorem demo: step the grid from 1 cell to 16 x 16 */
+  /* Green's theorem demo, full screen: step the grid from 1 cell to 16 x 16 */
   async green(r) {
     await r.open('rotation');
     await r.eval(() => { const d = document.querySelector('details[data-k=demo]'); d.open = true; });
     await r.tick(5);
     await r.eval(() => document.querySelector('button.demo-b:nth-child(2)').click());
     await r.tick(20);
+    await r.fullscreenUI();
     await r.eval(() => { const s = document.querySelector('#dm input[type=range]'); s.value = 0; s.dispatchEvent(new Event('input', { bubbles: true })); s.dispatchEvent(new Event('change', { bubbles: true })); });
     await r.tick(30);
+    r.mx = VW * 0.55; r.my = VH * 0.75; await r.cursor();
     r.start('green');
-    await r.hold(0.8);
+    await r.hold(0.3);
     const xAt = await r.slider('#dm input[type=range]'), y = xAt.y;
-    await r.moveTo(xAt(0), y, 0.8); await r.frame(2); await r.press(); await r.hold(0.4);
-    for (let v = 1; v <= 4; v++) { await r.moveTo(xAt(v), y, 0.45); await r.hold(1.15); }
-    await r.release(); await r.hold(1.2);
+    await r.moveTo(xAt(0), y, 0.5); await r.frame(2); await r.press(); await r.hold(0.2);
+    for (let v = 1; v <= 4; v++) { await r.moveTo(xAt(v), y, 0.3); await r.hold(0.75); }
+    await r.release(); await r.hold(0.8);
     r.finish();
   },
 

@@ -48,11 +48,11 @@ export const Facts: React.FC = () => {
         <Interactive.Div
           name="Fact 1"
           style={{
-            opacity: interpolate(frame, [6, 22], [0, 1], {
+            opacity: interpolate(frame, [4, 18], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             }),
-            translate: interpolate(frame, [6, 26], ["0px 16px", "0px 0px"], {
+            translate: interpolate(frame, [4, 22], ["0px 16px", "0px 0px"], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
               easing: Easing.bezier(0.16, 1, 0.3, 1),
@@ -64,11 +64,11 @@ export const Facts: React.FC = () => {
         <Interactive.Div
           name="Fact 2"
           style={{
-            opacity: interpolate(frame, [18, 34], [0, 1], {
+            opacity: interpolate(frame, [12, 26], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             }),
-            translate: interpolate(frame, [18, 38], ["0px 16px", "0px 0px"], {
+            translate: interpolate(frame, [12, 30], ["0px 16px", "0px 0px"], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
               easing: Easing.bezier(0.16, 1, 0.3, 1),
@@ -80,11 +80,11 @@ export const Facts: React.FC = () => {
         <Interactive.Div
           name="Fact 3"
           style={{
-            opacity: interpolate(frame, [30, 46], [0, 1], {
+            opacity: interpolate(frame, [20, 34], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             }),
-            translate: interpolate(frame, [30, 50], ["0px 16px", "0px 0px"], {
+            translate: interpolate(frame, [20, 38], ["0px 16px", "0px 0px"], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
               easing: Easing.bezier(0.16, 1, 0.3, 1),
@@ -97,11 +97,11 @@ export const Facts: React.FC = () => {
           name="Fact 4"
           style={{
             color: "#f3c96f",
-            opacity: interpolate(frame, [42, 58], [0, 1], {
+            opacity: interpolate(frame, [28, 42], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             }),
-            translate: interpolate(frame, [42, 62], ["0px 16px", "0px 0px"], {
+            translate: interpolate(frame, [28, 46], ["0px 16px", "0px 0px"], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
               easing: Easing.bezier(0.16, 1, 0.3, 1),
@@ -142,11 +142,11 @@ export const Outro: React.FC = () => {
             fontWeight: 600,
             fontSize: 104,
             color: "#ece6d8",
-            opacity: interpolate(frame, [6, 26], [0, 1], {
+            opacity: interpolate(frame, [4, 20], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             }),
-            translate: interpolate(frame, [6, 32], ["0px 24px", "0px 0px"], {
+            translate: interpolate(frame, [4, 26], ["0px 24px", "0px 0px"], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
               easing: Easing.bezier(0.16, 1, 0.3, 1),
@@ -166,11 +166,11 @@ export const Outro: React.FC = () => {
             fontFamily: mono,
             fontSize: 56,
             color: "#f3c96f",
-            opacity: interpolate(frame, [20, 40], [0, 1], {
+            opacity: interpolate(frame, [14, 30], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             }),
-            scale: interpolate(frame, [20, 44], [0.94, 1], {
+            scale: interpolate(frame, [14, 34], [0.94, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
               easing: Easing.bezier(0.16, 1, 0.3, 1),
@@ -187,7 +187,7 @@ export const Outro: React.FC = () => {
             fontFamily: sans,
             fontSize: 34,
             color: "#9aa3b2",
-            opacity: interpolate(frame, [36, 56], [0, 1], {
+            opacity: interpolate(frame, [24, 40], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             }),

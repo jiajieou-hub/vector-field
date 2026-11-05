@@ -22,7 +22,7 @@ export const LorenzScene: React.FC = () => {
           width: 1920,
           height: 1080,
           translate: "300px 0px",
-          scale: interpolate(frame, [0, 240], [1, 1.06], {
+          scale: interpolate(frame, [0, 180], [1, 1.06], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           }),
@@ -49,7 +49,7 @@ export const Showcase3D: React.FC<{ clip: string; name: string; label: string }>
         style={{
           width: 1920,
           height: 1080,
-          scale: interpolate(frame, [0, 110], [1.02, 1.08], {
+          scale: interpolate(frame, [0, 85], [1.02, 1.08], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           }),
