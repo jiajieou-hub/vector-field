@@ -4225,9 +4225,10 @@ function dimTarget(){
 }
 function dimStep(dt){const tg=dimTarget();let ch=false;for(let k=0;k<3;k++){const d=tg[k]-DIM[k];if(Math.abs(d)>0.004){DIM[k]+=d*(reduce?1:1-Math.exp(-dt/0.22));ch=true}else DIM[k]=tg[k]}return ch}
 function setPJ(){
-  /* 底部浮着的工具栏挡住的那一截不算；盒子在剩下的高度里居中（斜视时盒子投影偏下，中心再往上提 0.2 个单位） */
+  /* 底部浮着的工具栏挡住的那一截不算；盒子在剩下的高度里居中（斜视时盒子投影偏下，中心再往上提约 0.2 个单位；
+     上提量乘 cos(俯仰角)：转过头顶、画面上下颠倒时盒子投影反而偏上，就改成往下放，转的过程中连续变化不跳） */
   const av=Math.max(80,H-TBH);
-  PJ.sc=Math.min(av*(TBH?0.29:0.26),(W-P3PAD-P3L)*0.33,W*0.3)*cam.zoom;PJ.cx=P3L+(W-P3PAD-P3L)/2;PJ.cy=av/2-0.2*PJ.sc;
+  PJ.sc=Math.min(av*(TBH?0.29:0.26),(W-P3PAD-P3L)*0.33,W*0.3)*cam.zoom;PJ.cx=P3L+(W-P3PAD-P3L)/2;PJ.cy=av/2-0.2*Math.cos(cam.pitch)*PJ.sc;
   PJ.cyw=Math.cos(cam.yaw);PJ.syw=Math.sin(cam.yaw);PJ.cp=Math.cos(cam.pitch);PJ.sp=Math.sin(cam.pitch);
 }
 function proj(x,y,z){
@@ -4247,20 +4248,23 @@ function stepParticles3D(dt){
     else if(cvOn){const r=dc3(q[0],q[1],q[2]);if(isFinite(r[1])&&isFinite(r[2])&&isFinite(r[3])){if(!p.cv)p.cv=[r[1],r[2],r[3]];else{p.cv[0]+=(r[1]-p.cv[0])*kdv;p.cv[1]+=(r[2]-p.cv[1])*kdv;p.cv[2]+=(r[3]-p.cv[2])*kdv}}}
   }
 }
-const PMAX=Math.PI/2-0.01;let camG=null;
+/* 上下转和左右转一样没有限制，可以一直转圈。转过头顶以后画面上下颠倒，这时左右拖动要反过来，
+   盒子才继续跟着手走（拖动时在按下那一刻定好方向，中途不变） */
+let camG=null;
 function camGoal(){return camG||(camG={yaw:cam.yaw,pitch:cam.pitch,zoom:cam.zoom})}
+const yawSign=()=>Math.cos((camG||cam).pitch)<0?-1:1;
 function moveCamera(dt){
   {const tg=S.mode==="3d"?rightPad3():0;if(Math.abs(tg-P3PAD)>0.3){P3PAD+=(tg-P3PAD)*(reduce?1:1-Math.exp(-dt/0.12));dirty=true}else P3PAD=tg}
   {const tg=S.mode==="3d"?drawerPad():0;if(Math.abs(tg-P3L)>0.3){P3L+=(tg-P3L)*(reduce?1:1-Math.exp(-dt/0.12));dirty=true}else P3L=tg}
   if(camT){camG=null;
-    const k=1-Math.exp(-dt*7),dy=wrapAng(camT.yaw-cam.yaw);
-    cam.yaw+=dy*k;cam.pitch+=(camT.pitch-cam.pitch)*k;cam.zoom+=(1-cam.zoom)*k;
-    if(Math.abs(dy)<1e-3&&Math.abs(camT.pitch-cam.pitch)<1e-3&&Math.abs(1-cam.zoom)<1e-3){cam.yaw=camT.yaw;cam.pitch=camT.pitch;cam.zoom=1;camT=null}
+    const k=1-Math.exp(-dt*7),dy=wrapAng(camT.yaw-cam.yaw),dp=wrapAng(camT.pitch-cam.pitch);
+    cam.yaw+=dy*k;cam.pitch+=dp*k;cam.zoom+=(1-cam.zoom)*k;
+    if(Math.abs(dy)<1e-3&&Math.abs(dp)<1e-3&&Math.abs(1-cam.zoom)<1e-3){cam.yaw=camT.yaw;cam.pitch=camT.pitch;cam.zoom=1;camT=null}
     return;
   }
   if(!ptrs.size){
     if(Math.abs(vel.yaw)>0.02||Math.abs(vel.pitch)>0.02){
-      const g=camGoal();g.yaw+=vel.yaw*dt;const np=g.pitch+vel.pitch*dt;g.pitch=clamp(np,-PMAX,PMAX);if(np!==g.pitch)vel.pitch=0;
+      const g=camGoal();g.yaw+=vel.yaw*dt;g.pitch+=vel.pitch*dt;
       const f=Math.exp(-dt/0.3);vel.yaw*=f;vel.pitch*=f;
     }else{vel.yaw=vel.pitch=0}
   }
@@ -5437,7 +5441,7 @@ cv.addEventListener("pointerdown",e=>{
     const hk=DM&&DM.hit?DM.hit(sx,sy,e.pointerType):null;
     if(hk){drag={type:"demo",k:hk};stage.classList.add("grabbing")}
     else if(nearProbe(e)){const[px,py]=probeScreen();drag={type:"probe",ox:px-sx,oy:py-sy,cx:e.clientX,cy:e.clientY,t0:e.timeStamp,mv:0};setHot(true);stage.classList.add("grabbing")}
-    else if(S.mode==="3d")drag={type:"rotate"};
+    else if(S.mode==="3d")drag={type:"rotate",ys:yawSign()};
     else if(S.tool==="pen"){drag={type:"pen",sx,sy,mx:0,pt:e.pointerType};startPath(sx,sy)}
     else drag={type:"pend",sx,sy,pt:e.pointerType};
   }else if(ptrs.size===2){
@@ -5492,8 +5496,8 @@ cv.addEventListener("pointermove",e=>{
   /* 画路径：把浏览器合并掉的中间点也取出来，快速划过时线也是圆的 */
   if(drag.type==="pen"){drag.mx=Math.max(drag.mx,Math.hypot(sx-drag.sx,sy-drag.sy));const ce=e.getCoalescedEvents?e.getCoalescedEvents():null;if(ce&&ce.length)for(const q of ce){const[x,y]=localXY(q);addPathPoint(x,y)}else addPathPoint(sx,sy);return}
   /* 三维转动：改的是目标视角，镜头再平滑地跟上；松手后的惯性有上限（每秒最多约 140°），也衰减得快，免得转得人发晕 */
-  const g=camGoal(),dyaw=(cur.x-prev.x)*0.0065,dpitch=(cur.y-prev.y)*0.0065;
-  g.yaw+=dyaw;g.pitch=clamp(g.pitch+dpitch,-PMAX,PMAX);
+  const g=camGoal(),dyaw=(cur.x-prev.x)*0.0065*(drag.ys||1),dpitch=(cur.y-prev.y)*0.0065;
+  g.yaw+=dyaw;g.pitch+=dpitch;
   const now=e.timeStamp,dts=Math.max(8,now-lastMove)/1000;lastMove=now;
   vel.yaw=clamp(vel.yaw*0.5+0.5*dyaw/dts,-2.4,2.4);vel.pitch=clamp(vel.pitch*0.5+0.5*dpitch/dts,-2.4,2.4);
   dirty=true;
@@ -5551,7 +5555,7 @@ cv.addEventListener("wheel",e=>{
   if(e.ctrlKey){wdbg(e,"捏合 → 缩放");const f=Math.exp(clamp(dy,-300,300)*0.02);if(S.mode==="3d"){zoom3(f,true);return}const[sx,sy]=localXY(e);zoomAt(sx,sy,f,true);return}
   if(wheelIsSwipe(e)){
     wdbg(e,"手指 → 平移");
-    if(S.mode==="3d"){camT=null;vel.yaw=vel.pitch=0;const g=camGoal();g.yaw-=dx*0.0065;g.pitch=clamp(g.pitch-dy*0.0065,-PMAX,PMAX);dirty=true;return}
+    if(S.mode==="3d"){camT=null;vel.yaw=vel.pitch=0;const g=camGoal();g.yaw-=dx*0.0065*yawSign();g.pitch-=dy*0.0065;dirty=true;return}
     panBy(-dx,-dy);return;
   }
   wdbg(e,"滚轮 → 缩放");
@@ -5571,9 +5575,9 @@ cv.addEventListener("keydown",e=>{
   if(!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","+","=","-","_"].includes(k))return;
   e.preventDefault();
   if(S.mode==="3d"){
-    camT=null;const g=camGoal();
-    if(k==="ArrowLeft")g.yaw-=0.1;if(k==="ArrowRight")g.yaw+=0.1;
-    if(k==="ArrowUp")g.pitch=clamp(g.pitch-0.1,-PMAX,PMAX);if(k==="ArrowDown")g.pitch=clamp(g.pitch+0.1,-PMAX,PMAX);
+    camT=null;const g=camGoal(),ys=yawSign();
+    if(k==="ArrowLeft")g.yaw-=0.1*ys;if(k==="ArrowRight")g.yaw+=0.1*ys;
+    if(k==="ArrowUp")g.pitch-=0.1;if(k==="ArrowDown")g.pitch+=0.1;
     if(k==="+"||k==="=")zoom3(1/1.25);if(k==="-"||k==="_")zoom3(1.25);
     dirty=true;
   }else{
