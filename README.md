@@ -137,6 +137,10 @@ You need a modern browser with WebGL. Fonts come from Google Fonts and formula t
 
 On the GitHub Pages site, the page counts visits and image saves anonymously with [GoatCounter](https://www.goatcounter.com/). It sets no cookies and collects no personal data. To stop counting your own visits, open the page once with `#stats-off` at the end of the address. Use `#stats-on` to undo this. Nothing is counted when you run the page locally.
 
+## License
+
+[MIT](LICENSE). You are free to use, modify and share it, including in teaching materials, as long as the copyright notice is kept.
+
 ## Feedback
 
 Found a bug or have an idea? [Open an issue](https://github.com/jiajieou-hub/vector-field/issues), or email <jiajie_ou@berkeley.edu>. The address is also under Settings (⚙) → Contact in the app.

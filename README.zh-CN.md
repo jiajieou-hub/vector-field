@@ -137,6 +137,10 @@ python3 -m http.server 8000
 
 在 GitHub Pages 上，本页用 [GoatCounter](https://www.goatcounter.com/) 匿名统计打开和保存图片的次数，不使用 cookie，也不收集个人信息。不想计入自己的访问，可以在网址后面加上 `#stats-off` 打开一次；要恢复就用 `#stats-on`。在本地运行时不做任何统计。
 
+## 许可证
+
+[MIT](LICENSE)：可以自由使用、修改和分享（包括用在课件里），只需保留版权声明。
+
 ## 反馈
 
 发现问题或有新的想法，欢迎[提 issue](https://github.com/jiajieou-hub/vector-field/issues)，或者发邮件到 <jiajie_ou@berkeley.edu>。这个邮箱也能在 设置（⚙）→ 联系我们 里找到。
