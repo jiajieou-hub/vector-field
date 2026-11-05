@@ -11,7 +11,7 @@ const TypeZoom: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         width: 1440,
         height: 810,
         transformOrigin: "97% 20%",
-        scale: interpolate(frame, [16, 40, 128, 152], [1, 1.6, 1.6, 1], {
+        scale: interpolate(frame, [8, 28, 88, 108], [1, 1.6, 1.6, 1], {
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
           easing: Easing.bezier(0.65, 0, 0.35, 1),
@@ -66,8 +66,8 @@ const LoopZoom: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       style={{
         width: 1440,
         height: 810,
-        transformOrigin: "65% 4%",
-        scale: interpolate(frame, [168, 196], [1, 1.35], {
+        transformOrigin: "98% 3%",
+        scale: interpolate(frame, [126, 148], [1, 1.4], {
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
           easing: Easing.bezier(0.65, 0, 0.35, 1),

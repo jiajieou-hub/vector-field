@@ -24,68 +24,68 @@ export type PromoProps = {
   music: string;
 };
 
-/* Every cut is a 15-frame cross-fade, so the total is the sum of the 14 scenes minus 15 for each of the 13 cuts. */
+/* Every cut is a 12-frame cross-fade, so the total is the sum of the 14 scenes minus 12 for each of the 13 cuts. */
 export const PROMO_DURATION =
-  150 + 190 + 240 + 220 + 215 + 255 + 265 + 230 + 4 * 100 + 140 + 170 - 15 * 13;
+  120 + 128 + 214 + 143 + 155 + 180 + 182 + 180 + 4 * 85 + 110 + 150 - 12 * 13;
 
 export const Promo: React.FC<PromoProps> = ({ music }) => {
   const { durationInFrames, fps } = useVideoConfig();
   return (
     <AbsoluteFill style={{ backgroundColor: "#090c12" }}>
       <TransitionSeries>
-        <TransitionSeries.Sequence name="Intro" durationInFrames={150}>
+        <TransitionSeries.Sequence name="Intro" durationInFrames={120}>
           <Intro />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Type a field" durationInFrames={190}>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
+        <TransitionSeries.Sequence name="Type a field" durationInFrames={128}>
           <TypeScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Display styles" durationInFrames={240}>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
+        <TransitionSeries.Sequence name="Display styles" durationInFrames={214}>
           <StylesScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Probe" durationInFrames={220}>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
+        <TransitionSeries.Sequence name="Probe" durationInFrames={143}>
           <ProbeScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Hopf" durationInFrames={215}>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
+        <TransitionSeries.Sequence name="Hopf" durationInFrames={155}>
           <HopfScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Loop" durationInFrames={255}>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
+        <TransitionSeries.Sequence name="Loop" durationInFrames={180}>
           <LoopScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Green" durationInFrames={265}>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
+        <TransitionSeries.Sequence name="Green" durationInFrames={182}>
           <GreenScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Lorenz" durationInFrames={230}>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
+        <TransitionSeries.Sequence name="Lorenz" durationInFrames={180}>
           <LorenzScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Halvorsen" durationInFrames={100}>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
+        <TransitionSeries.Sequence name="Halvorsen" durationInFrames={85}>
           <Showcase3D clip="halvorsen" name="Halvorsen" label="STRANGE ATTRACTOR" />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Magnetic dipole" durationInFrames={100}>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
+        <TransitionSeries.Sequence name="Magnetic dipole" durationInFrames={85}>
           <Showcase3D clip="dipole3d" name="Magnetic dipole" label="MAGNETIC FIELD" />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Straight wire" durationInFrames={100}>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
+        <TransitionSeries.Sequence name="Straight wire" durationInFrames={85}>
           <Showcase3D clip="wire" name="Current in a straight wire" label="MAGNETIC FIELD" />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Rising helix" durationInFrames={100}>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
+        <TransitionSeries.Sequence name="Rising helix" durationInFrames={85}>
           <Showcase3D clip="helix" name="Rising helix" label="STREAMLINES" />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Facts" durationInFrames={140}>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
+        <TransitionSeries.Sequence name="Facts" durationInFrames={110}>
           <Facts />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Outro" durationInFrames={170}>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
+        <TransitionSeries.Sequence name="Outro" durationInFrames={150}>
           <Outro />
         </TransitionSeries.Sequence>
       </TransitionSeries>
