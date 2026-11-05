@@ -33,7 +33,7 @@ export const RemotionRoot: React.FC = () => {
         <Composition id="Probe" component={ProbeScene} width={1920} height={1080} fps={30} durationInFrames={220} />
         <Composition id="Hopf" component={HopfScene} width={1920} height={1080} fps={30} durationInFrames={215} />
         <Composition id="Loop" component={LoopScene} width={1920} height={1080} fps={30} durationInFrames={255} />
-        <Composition id="Green" component={GreenScene} width={1920} height={1080} fps={30} durationInFrames={235} />
+        <Composition id="Green" component={GreenScene} width={1920} height={1080} fps={30} durationInFrames={265} />
         <Composition id="Lorenz" component={LorenzScene} width={1920} height={1080} fps={30} durationInFrames={230} />
         <Composition
           id="Attractor"

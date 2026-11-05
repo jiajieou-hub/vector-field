@@ -26,7 +26,7 @@ export type PromoProps = {
 
 /* Every cut is a 15-frame cross-fade, so the total is the sum of the scenes minus 15 per cut. */
 export const PROMO_DURATION =
-  150 + 190 + 240 + 220 + 215 + 255 + 235 + 230 + 4 * 100 + 140 + 170 - 15 * 14;
+  150 + 190 + 240 + 220 + 215 + 255 + 265 + 230 + 4 * 100 + 140 + 170 - 15 * 14;
 
 export const Promo: React.FC<PromoProps> = ({ music }) => {
   const { durationInFrames, fps } = useVideoConfig();
@@ -57,7 +57,7 @@ export const Promo: React.FC<PromoProps> = ({ music }) => {
           <LoopScene />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Green" durationInFrames={235}>
+        <TransitionSeries.Sequence name="Green" durationInFrames={265}>
           <GreenScene />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />

@@ -201,7 +201,10 @@ const CLIPS = {
   /* Intro / outro background: particles only, no interface */
   async bg(r) {
     await r.open('dipole', { fullscreen: true, hideUI: true, warm: 3 });
-    await r.eval(() => document.querySelector('.mid .tg[data-k=arrows]').click());
+    await r.eval(() => {
+      document.querySelector('.mid .tg[data-k=arrows]').click();
+      window.__vf.S.hover = { x: 1e3, y: 1e3 }; // the probe is clamped to the top-right corner, which the edit crops away
+    });
     await r.tick(45);
     r.start('bg'); await r.hold(9); r.finish();
   },
