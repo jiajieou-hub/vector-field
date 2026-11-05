@@ -17,16 +17,16 @@ import {
   TypeScene,
 } from "./scenes/Features2D";
 import { Intro } from "./scenes/Intro";
-import { AttractorScene, LorenzScene } from "./scenes/Scenes3D";
+import { LorenzScene, Showcase3D } from "./scenes/Scenes3D";
 
 export type PromoProps = {
   /* A file in public/, e.g. "music.mp3". Leave empty for a silent video. */
   music: string;
 };
 
-/* Every cut is a 15-frame cross-fade, so the total is the sum of the scenes minus 15 per cut. */
+/* Every cut is a 15-frame cross-fade, so the total is the sum of the 14 scenes minus 15 for each of the 13 cuts. */
 export const PROMO_DURATION =
-  150 + 190 + 240 + 220 + 215 + 255 + 265 + 230 + 4 * 100 + 140 + 170 - 15 * 14;
+  150 + 190 + 240 + 220 + 215 + 255 + 265 + 230 + 4 * 100 + 140 + 170 - 15 * 13;
 
 export const Promo: React.FC<PromoProps> = ({ music }) => {
   const { durationInFrames, fps } = useVideoConfig();
@@ -65,20 +65,20 @@ export const Promo: React.FC<PromoProps> = ({ music }) => {
           <LorenzScene />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Aizawa" durationInFrames={100}>
-          <AttractorScene clip="aizawa" name="Aizawa" />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Thomas" durationInFrames={100}>
-          <AttractorScene clip="thomas" name="Thomas" />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
         <TransitionSeries.Sequence name="Halvorsen" durationInFrames={100}>
-          <AttractorScene clip="halvorsen" name="Halvorsen" />
+          <Showcase3D clip="halvorsen" name="Halvorsen" label="STRANGE ATTRACTOR" />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
-        <TransitionSeries.Sequence name="Rössler" durationInFrames={100}>
-          <AttractorScene clip="rossler" name="Rössler" />
+        <TransitionSeries.Sequence name="Magnetic dipole" durationInFrames={100}>
+          <Showcase3D clip="dipole3d" name="Magnetic dipole" label="MAGNETIC FIELD" />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
+        <TransitionSeries.Sequence name="Straight wire" durationInFrames={100}>
+          <Showcase3D clip="wire" name="Current in a straight wire" label="MAGNETIC FIELD" />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
+        <TransitionSeries.Sequence name="Rising helix" durationInFrames={100}>
+          <Showcase3D clip="helix" name="Rising helix" label="STREAMLINES" />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 15 })} />
         <TransitionSeries.Sequence name="Facts" durationInFrames={140}>

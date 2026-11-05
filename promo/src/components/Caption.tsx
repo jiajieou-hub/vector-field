@@ -65,8 +65,8 @@ export const Caption: React.FC<{ kicker: string; title: string }> = ({
   );
 };
 
-/* Kicker and title in the lower left, over full-screen footage */
-export const LowerCaption: React.FC<{ kicker: string; title: string }> = ({
+/* Kicker and a two-line title on the left, over full-screen footage that sits to the right */
+export const SideCaption: React.FC<{ kicker: string; title: string }> = ({
   kicker,
   title,
 }) => {
@@ -78,59 +78,67 @@ export const LowerCaption: React.FC<{ kicker: string; title: string }> = ({
         style={{
           position: "absolute",
           left: 0,
-          bottom: 0,
-          width: 1920,
-          height: 420,
+          top: 0,
+          width: 1100,
+          height: 1080,
           background:
-            "linear-gradient(to top, rgba(9,12,18,0.85), rgba(9,12,18,0))",
+            "linear-gradient(to right, rgba(9,12,18,0.9), rgba(9,12,18,0.6) 45%, rgba(9,12,18,0))",
         }}
       />
       <Interactive.Div
-        name="Kicker"
+        name="Caption"
         style={{
           position: "absolute",
           left: 120,
-          bottom: 196,
-          fontFamily: sans,
-          fontWeight: 600,
-          fontSize: 26,
-          letterSpacing: "0.24em",
-          color: "#f3c96f",
-          opacity: interpolate(frame, [6, 22], [0, 1], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          }),
-          translate: interpolate(frame, [6, 22], ["0px 12px", "0px 0px"], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-            easing: Easing.bezier(0.16, 1, 0.3, 1),
-          }),
+          bottom: 140,
+          width: 780,
+          display: "flex",
+          flexDirection: "column",
+          gap: 22,
         }}
       >
-        {kicker}
-      </Interactive.Div>
-      <Interactive.Div
-        name="Title"
-        style={{
-          position: "absolute",
-          left: 120,
-          bottom: 104,
-          fontFamily: serif,
-          fontWeight: 600,
-          fontSize: 76,
-          color: "#ece6d8",
-          opacity: interpolate(frame, [10, 28], [0, 1], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          }),
-          translate: interpolate(frame, [10, 28], ["0px 16px", "0px 0px"], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-            easing: Easing.bezier(0.16, 1, 0.3, 1),
-          }),
-        }}
-      >
-        {title}
+        <Interactive.Div
+          name="Kicker"
+          style={{
+            fontFamily: sans,
+            fontWeight: 600,
+            fontSize: 26,
+            letterSpacing: "0.24em",
+            color: "#f3c96f",
+            opacity: interpolate(frame, [6, 22], [0, 1], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+            }),
+            translate: interpolate(frame, [6, 22], ["0px 12px", "0px 0px"], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+              easing: Easing.bezier(0.16, 1, 0.3, 1),
+            }),
+          }}
+        >
+          {kicker}
+        </Interactive.Div>
+        <Interactive.Div
+          name="Title"
+          style={{
+            fontFamily: serif,
+            fontWeight: 600,
+            fontSize: 80,
+            lineHeight: 1.08,
+            color: "#ece6d8",
+            opacity: interpolate(frame, [10, 28], [0, 1], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+            }),
+            translate: interpolate(frame, [10, 28], ["0px 16px", "0px 0px"], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+              easing: Easing.bezier(0.16, 1, 0.3, 1),
+            }),
+          }}
+        >
+          {title}
+        </Interactive.Div>
       </Interactive.Div>
     </>
   );

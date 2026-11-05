@@ -318,11 +318,22 @@ const CLIPS = {
     r.finish();
   },
 };
-for (const [name, yaw] of [['aizawa', -2.6], ['thomas', -2.3], ['halvorsen', -2.1], ['rossler', -2.4]]) {
+/* Short 3D shots: [clip, example, camera yaw, show streamlines instead of arrows] */
+for (const [name, hash, yaw, lines] of [
+  ['halvorsen', 'halvorsen', -2.1, false],
+  ['dipole3d', 'magnetic-dipole', -2.3, true],
+  ['wire', 'wire', -2.3, true],
+  ['helix', 'helix', -2.3, true],
+]) {
   CLIPS[name] = async (r) => {
-    await r.open(name, { fullscreen: true, hideUI: true, warm: 4 });
+    await r.open(hash, { fullscreen: true, hideUI: true, warm: 4 });
+    if (lines) await r.eval(() => {
+      const t = (k) => document.querySelector('.mid .tg[data-k=' + k + ']');
+      if (t('arrows').getAttribute('aria-pressed') === 'true') t('arrows').click();
+      if (t('stream').getAttribute('aria-pressed') !== 'true') t('stream').click();
+    });
     await r.eval((y) => window.__vf.setCam(y, 0.35, 0.92), yaw);
-    await r.tick(30);
+    await r.tick(lines ? 60 : 30);
     r.start(name);
     await r.during(4, (t) => r.eval(([y, t]) => window.__vf.setCam(y + 0.5 * t, 0.35 + 0.1 * t, 0.92), [yaw, t]));
     r.finish();

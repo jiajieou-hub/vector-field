@@ -37,7 +37,7 @@ This records every clip (about 15 to 25 minutes). To redo only some of them, nam
 node record/record.cjs hopf loop
 ```
 
-Clips: `bg`, `type` (also writes `styles`), `probe`, `hopf`, `loop`, `green`, `lorenz`, `aizawa`, `thomas`, `halvorsen`, `rossler`. Each scene is described in `CLIPS` in `record/record.cjs`.
+Clips: `bg`, `type` (also writes `styles`), `probe`, `hopf`, `loop`, `green`, `lorenz`, `halvorsen`, `dipole3d`, `wire`, `helix`. Each scene is described in `CLIPS` in `record/record.cjs`.
 
 How the recorder works:
 

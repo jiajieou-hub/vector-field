@@ -11,7 +11,7 @@ import {
   TypeScene,
 } from "./scenes/Features2D";
 import { Intro } from "./scenes/Intro";
-import { AttractorScene, LorenzScene } from "./scenes/Scenes3D";
+import { LorenzScene, Showcase3D } from "./scenes/Scenes3D";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -36,13 +36,13 @@ export const RemotionRoot: React.FC = () => {
         <Composition id="Green" component={GreenScene} width={1920} height={1080} fps={30} durationInFrames={265} />
         <Composition id="Lorenz" component={LorenzScene} width={1920} height={1080} fps={30} durationInFrames={230} />
         <Composition
-          id="Attractor"
-          component={AttractorScene}
+          id="Showcase3D"
+          component={Showcase3D}
           width={1920}
           height={1080}
           fps={30}
           durationInFrames={100}
-          defaultProps={{ clip: "aizawa", name: "Aizawa" }}
+          defaultProps={{ clip: "halvorsen", name: "Halvorsen", label: "STRANGE ATTRACTOR" }}
         />
         <Composition id="Facts" component={Facts} width={1920} height={1080} fps={30} durationInFrames={140} />
         <Composition id="Outro" component={Outro} width={1920} height={1080} fps={30} durationInFrames={170} />

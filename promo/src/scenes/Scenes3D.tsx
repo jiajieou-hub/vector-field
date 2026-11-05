@@ -7,7 +7,7 @@ import {
   staticFile,
   useCurrentFrame,
 } from "remotion";
-import { LowerCaption } from "../components/Caption";
+import { SideCaption } from "../components/Caption";
 import { sans, serif } from "../theme";
 
 export const LorenzScene: React.FC = () => {
@@ -21,25 +21,27 @@ export const LorenzScene: React.FC = () => {
         style={{
           width: 1920,
           height: 1080,
+          translate: "300px 0px",
           scale: interpolate(frame, [0, 240], [1, 1.06], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           }),
         }}
       />
-      <LowerCaption kicker="07 · INTO 3D" title="Fields and strange attractors in 3D" />
+      <SideCaption kicker="07 · INTO 3D" title="Fields and strange attractors in 3D" />
     </AbsoluteFill>
   );
 };
 
-/* One attractor, full screen, with its name in the corner */
-export const AttractorScene: React.FC<{ clip: string; name: string }> = ({
+/* One short 3D shot, full screen, with its name and a small label in the corner */
+export const Showcase3D: React.FC<{ clip: string; name: string; label: string }> = ({
   clip,
   name,
+  label,
 }) => {
   const frame = useCurrentFrame();
   return (
-    <AbsoluteFill name="Attractor" style={{ backgroundColor: "#090c12" }}>
+    <AbsoluteFill name="3D shot" style={{ backgroundColor: "#090c12" }}>
       <Video
         name="Footage"
         src={staticFile(`clips/${clip}.webm`)}
@@ -104,7 +106,7 @@ export const AttractorScene: React.FC<{ clip: string; name: string }> = ({
           }),
         }}
       >
-        ATTRACTOR
+        {label}
       </Interactive.Div>
     </AbsoluteFill>
   );

@@ -22,7 +22,7 @@ In this video:
 • Phase portraits: drag a parameter and watch a Hopf limit cycle appear
 • Draw a loop to get circulation and flux, checked against Green's theorem
 • Step-by-step demos of Green's, Stokes' and the divergence theorem
-• 3D fields and strange attractors: Lorenz, Aizawa, Thomas, Halvorsen, Rössler
+• 3D fields and strange attractors: the Lorenz and Halvorsen attractors, a magnetic dipole, the field of a current-carrying wire
 
 Made for students and teachers of multivariable calculus, differential equations, electromagnetism and fluid mechanics. The interface is in English and 中文.
 

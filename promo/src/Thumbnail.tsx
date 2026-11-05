@@ -12,18 +12,18 @@ export const Thumbnail: React.FC = () => (
       muted
       style={{
         position: "absolute",
-        left: 360,
-        top: -40,
-        width: 1066,
-        height: 600,
-        scale: 1.35,
+        left: 520,
+        top: 20,
+        width: 960,
+        height: 540,
+        scale: 1.3,
       }}
     />
     <AbsoluteFill
       name="Fade to the left"
       style={{
         background:
-          "linear-gradient(90deg, #090c12 0%, #090c12 34%, rgba(9,12,18,0.6) 52%, rgba(9,12,18,0) 70%)",
+          "linear-gradient(90deg, #090c12 0%, #090c12 46%, rgba(9,12,18,0.55) 60%, rgba(9,12,18,0) 76%)",
       }}
     />
     <Interactive.Div
