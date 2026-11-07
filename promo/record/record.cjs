@@ -414,7 +414,9 @@ const CLIPS = {
     await r.eval(() => window.__vf.setCam(-2.3, 0.42, 1.0));
     r.mx = VW * 0.4; r.my = VH * 0.85; await r.cursor();
     await r.tick(60);
-    await r.eval(() => { const s = document.querySelector('#dm input[type=range]'); s.value = 1; s.dispatchEvent(new Event('input', { bubbles: true })); s.dispatchEvent(new Event('change', { bubbles: true })); });
+    /* the demo opens at 2 x 2 x 2 and has already played; replay it so the inner faces
+       cancel (from 66 % of its 3.2 s) about half a second into the shot */
+    await r.eval(() => document.querySelector('#dmC .pb-play').click());
     await r.tick(Math.round(1.6 * FPS));
     r.start('gauss');
     await r.during(2.4, (t) => r.eval((t) => window.__vf.setCam(-2.3 + 0.25 * t, 0.42, 1.0), t));
