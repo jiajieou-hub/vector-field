@@ -7,10 +7,16 @@ import {
   staticFile,
   useCurrentFrame,
 } from "remotion";
-import { sans, serif, zh } from "../theme";
+import { bar, f } from "../timeline";
+import { sans, serif } from "../theme";
+
+/* The music fades in over the first bars; the field fades in with it. The three words of
+   the name land on the first three beats of bar 1, the tagline on bar 2. */
+const WORDS = ["Vector", "Field", "Sketchpad"];
 
 export const Intro: React.FC = () => {
   const frame = useCurrentFrame();
+  const tag = f(bar(2));
   return (
     <AbsoluteFill name="Intro" style={{ backgroundColor: "#090c12" }}>
       <Video
@@ -20,7 +26,12 @@ export const Intro: React.FC = () => {
         style={{
           width: 1920,
           height: 1080,
-          scale: interpolate(frame, [0, 120], [1.3, 1.2], {
+          opacity: interpolate(frame, [0, f(bar(1))], [0, 1], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+            easing: Easing.bezier(0.4, 0, 0.6, 1),
+          }),
+          scale: interpolate(frame, [0, f(bar(3))], [1.36, 1.2], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           }),
@@ -45,40 +56,37 @@ export const Intro: React.FC = () => {
         <Interactive.Div
           name="Name"
           style={{
+            display: "flex",
+            gap: "0.26em",
             fontFamily: serif,
             fontWeight: 600,
             fontSize: 136,
             letterSpacing: "-0.01em",
             color: "#ece6d8",
-            opacity: interpolate(frame, [4, 24], [0, 1], {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-            }),
-            translate: interpolate(frame, [4, 28], ["0px 30px", "0px 0px"], {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-              easing: Easing.bezier(0.16, 1, 0.3, 1),
-            }),
           }}
         >
-          Vector Field Sketchpad
-        </Interactive.Div>
-        <Interactive.Div
-          name="Chinese name"
-          style={{
-            marginTop: 18,
-            fontFamily: zh,
-            fontWeight: 500,
-            fontSize: 46,
-            letterSpacing: "0.3em",
-            color: "#b9b2a3",
-            opacity: interpolate(frame, [14, 32], [0, 1], {
-              extrapolateLeft: "clamp",
-              extrapolateRight: "clamp",
-            }),
-          }}
-        >
-          向量场画板
+          {WORDS.map((w, i) => {
+            const t = f(bar(1, 1 + i));
+            return (
+              <Interactive.Div
+                key={w}
+                name={w}
+                style={{
+                  opacity: interpolate(frame, [t, t + 4], [0, 1], {
+                    extrapolateLeft: "clamp",
+                    extrapolateRight: "clamp",
+                  }),
+                  translate: interpolate(frame, [t, t + 10], ["0px 34px", "0px 0px"], {
+                    extrapolateLeft: "clamp",
+                    extrapolateRight: "clamp",
+                    easing: Easing.bezier(0.16, 1, 0.3, 1),
+                  }),
+                }}
+              >
+                {w}
+              </Interactive.Div>
+            );
+          })}
         </Interactive.Div>
         <Interactive.Div
           name="Tagline"
@@ -87,11 +95,11 @@ export const Intro: React.FC = () => {
             fontFamily: sans,
             fontSize: 50,
             color: "#f3c96f",
-            opacity: interpolate(frame, [26, 44], [0, 1], {
+            opacity: interpolate(frame, [tag, tag + 6], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             }),
-            translate: interpolate(frame, [26, 48], ["0px 18px", "0px 0px"], {
+            translate: interpolate(frame, [tag, tag + 14], ["0px 18px", "0px 0px"], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
               easing: Easing.bezier(0.16, 1, 0.3, 1),

@@ -9,3 +9,6 @@ out
 # Recorded footage and its temporary frames (re-create with: node record/record.cjs)
 public/clips
 record/.frames
+
+# The soundtrack (YouTube Audio Library: "Lunar Landing"); not redistributed here
+public/music
