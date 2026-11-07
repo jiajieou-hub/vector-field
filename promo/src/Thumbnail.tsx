@@ -7,8 +7,15 @@ import { sans, serif } from "./theme";
 
 const W = 1280;
 const H = 720;
+/* SHIFT moves the whole layout right; PIC moves the picture a little further on its own
+   (its right edge stays about 110 px in from the frame) */
+const SHIFT = 30;
+const PIC = 45;
 /* Where the Lorenz cube's centre lands: right of the middle, a little below the horizon */
-const FOCUS = { x: 905, y: 378 };
+const FOCUS = { x: 905 + SHIFT + PIC, y: 378 };
+const TEXT_X = 72 + SHIFT;
+/* x as a gradient offset, for the stops given in pixels */
+const at = (x: number) => (x / W).toFixed(4);
 
 /* Streamlines of a uniform flow past a cylinder centred on the focus, so the
    lines part around the picture and lead the eye to it. Each line is seeded far
@@ -69,7 +76,7 @@ export const Thumbnail: React.FC = () => {
         muted
         style={{
           position: "absolute",
-          left: 430,
+          left: 430 + SHIFT + PIC,
           top: 113,
           width: 960,
           height: 540,
@@ -82,8 +89,8 @@ export const Thumbnail: React.FC = () => {
       <AbsoluteFill
         name="Fade to the left"
         style={{
-          background:
-            "linear-gradient(90deg, #090c12 0%, #090c12 40%, rgba(9,12,18,0.5) 54%, rgba(9,12,18,0) 66%)",
+          /* moves with the picture, so its left side fades the same way */
+          background: `linear-gradient(90deg, #090c12 0px, #090c12 ${512 + SHIFT + PIC}px, rgba(9,12,18,0.5) ${691 + SHIFT + PIC}px, rgba(9,12,18,0) ${845 + SHIFT + PIC}px)`,
         }}
       />
       <svg
@@ -96,9 +103,9 @@ export const Thumbnail: React.FC = () => {
           {/* Lines fade out behind the title and as they reach the picture */}
           <linearGradient id="flowFade" x1="0" y1="0" x2={W} y2="0" gradientUnits="userSpaceOnUse">
             <stop offset="0" stopColor="#ece6d8" stopOpacity="0.10" />
-            <stop offset="0.3" stopColor="#ece6d8" stopOpacity="0.045" />
-            <stop offset="0.55" stopColor="#ece6d8" stopOpacity="0.075" />
-            <stop offset="0.72" stopColor="#ece6d8" stopOpacity="0.03" />
+            <stop offset={at(384 + SHIFT)} stopColor="#ece6d8" stopOpacity="0.045" />
+            <stop offset={at(704 + SHIFT + PIC)} stopColor="#ece6d8" stopOpacity="0.075" />
+            <stop offset={at(922 + SHIFT + PIC)} stopColor="#ece6d8" stopOpacity="0.03" />
             <stop offset="1" stopColor="#ece6d8" stopOpacity="0.06" />
           </linearGradient>
           {/* Clear the lines away from the picture itself */}
@@ -110,13 +117,14 @@ export const Thumbnail: React.FC = () => {
             <rect width={W} height={H} fill="url(#holeG)" />
           </mask>
           <linearGradient id="goldFade" x1="0" y1="0" x2={W} y2="0" gradientUnits="userSpaceOnUse">
-            <stop offset="0.056" stopColor="#f3c96f" stopOpacity="0" />
-            <stop offset="0.06" stopColor="#f3c96f" stopOpacity="0.95" />
-            <stop offset="0.16" stopColor="#f3c96f" stopOpacity="0.5" />
-            <stop offset="0.36" stopColor="#f3c96f" stopOpacity="0.1" />
-            <stop offset="0.62" stopColor="#f3c96f" stopOpacity="0.1" />
-            <stop offset="0.74" stopColor="#f3c96f" stopOpacity="0.42" />
-            <stop offset="0.9" stopColor="#f3c96f" stopOpacity="0.2" />
+            {/* starts at the title's left edge, brightens again under the picture */}
+            <stop offset={at(TEXT_X + 0)} stopColor="#f3c96f" stopOpacity="0" />
+            <stop offset={at(TEXT_X + 5)} stopColor="#f3c96f" stopOpacity="0.95" />
+            <stop offset={at(TEXT_X + 133)} stopColor="#f3c96f" stopOpacity="0.5" />
+            <stop offset={at(TEXT_X + 389)} stopColor="#f3c96f" stopOpacity="0.1" />
+            <stop offset={at(794 + SHIFT + PIC)} stopColor="#f3c96f" stopOpacity="0.1" />
+            <stop offset={at(947 + SHIFT + PIC)} stopColor="#f3c96f" stopOpacity="0.42" />
+            <stop offset={at(1152 + SHIFT + PIC)} stopColor="#f3c96f" stopOpacity="0.2" />
             <stop offset="1" stopColor="#f3c96f" stopOpacity="0" />
           </linearGradient>
         </defs>
@@ -131,7 +139,7 @@ export const Thumbnail: React.FC = () => {
         name="Title"
         style={{
           position: "absolute",
-          left: 72,
+          left: TEXT_X,
           top: 196,
           width: 640,
           fontFamily: serif,
@@ -147,7 +155,7 @@ export const Thumbnail: React.FC = () => {
         name="Tagline"
         style={{
           position: "absolute",
-          left: 72,
+          left: TEXT_X,
           top: 470,
           padding: "10px 22px",
           borderRadius: 999,
