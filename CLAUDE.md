@@ -22,6 +22,7 @@ Notes for Claude Code sessions in this repository. The owner writes in Chinese; 
 
 - 3D camera: `cam={yaw,pitch,zoom}`; projection in `setPJ()`/`proj()`. Pitch is unlimited (full tumbling, added in PR #4): left-right drag direction flips when upside down (`yawSign()`), preset-view animation wraps pitch the short way, box lift is `0.2*cos(pitch)`.
 - Real full screen uses the Fullscreen API with a fallback class `max` (fill window). In full screen the left drawer `#drL` holds the same Display/Analysis/Demo sections (moved, not copied).
+- Green, Gauss and Stokes demos have a play bar: each demo's timeline `tl` runs 0→1 and is advanced in `LV.tick`; `keyT` is the gold mark just before the arrows cancel; rate, loop and hold live in the shared `DPB`. Space plays or pauses these demos. The canvas pause button is gone (`setPaused` is a no-op and `S.paused` stays false). In the 3D demos, arrows far from the cube faces or the surface fade (`arrowFocus`, `FOC`).
 - Adaptive quality lowers particle counts when frames exceed ~20 ms, but not when the frame rate is locked at a steady 30 fps.
 - Formula inputs apply after a 350 ms debounce; presets load from the URL hash; KaTeX 0.16.11 comes from jsDelivr (SRI pinned).
 - Visits are counted with GoatCounter only on `*.github.io`; `#stats-off` / `#stats-on` opt out and back in.

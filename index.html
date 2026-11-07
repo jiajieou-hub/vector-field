@@ -893,7 +893,7 @@ button,summary,label.sw,.seg,.chips,.cgl,.slh,.fr .fl,.fx label,.prm .pl,.cnt,.p
 .tt-probe .tt-d{width:0;min-width:100%}
 .tt-probe .pt-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--probe);margin-right:7px;vertical-align:1px}
 /* 探针卡片：放在画布里、跟着探针走；常驻时右上角有 × */
-.tt.ptcard{position:absolute;z-index:8;pointer-events:none;overflow:hidden;padding:0;transform-origin:50% 50%;transition:opacity .14s ease;
+.tt.ptcard{position:absolute;z-index:4;pointer-events:none;overflow:hidden;padding:0;transform-origin:50% 50%;transition:opacity .14s ease;
   background:var(--grain),var(--hud);-webkit-backdrop-filter:blur(14px) saturate(1.15);backdrop-filter:blur(14px) saturate(1.15)}
 .tt.ptcard.on{opacity:var(--pf,1);transform:scaleY(var(--psy,1))}
 .ptcard .pt-in{width:max-content;min-width:214px;padding:8px 12px 9px;box-sizing:border-box}
@@ -905,6 +905,47 @@ button,summary,label.sw,.seg,.chips,.cgl,.slh,.fr .fl,.fx label,.prm .pl,.cnt,.p
 .ptcard .pt-x svg{width:13px;height:13px}
 /* 退出全屏时从整个屏幕收拢到画板位置的那块暗色 */
 .fs-veil{position:fixed;inset:0;z-index:2147482500;pointer-events:none;background:var(--grain),var(--glass-tint),#050608}
+/* 演示卡片里的播放条 */
+.dm-pb{display:flex;flex-direction:column;gap:9px}
+.pb-r1{display:flex;align-items:center;gap:10px}
+.dm-pb .pb-play{position:relative;flex:none;width:36px;height:36px;min-width:36px;padding:0;border-radius:50%;border-color:transparent;color:#121821;background:rgba(248,246,240,.94);background-image:none;
+  box-shadow:inset 0 1px 0 #fff,0 6px 18px -6px rgba(0,0,0,.7)}
+.dm-pb .pb-play:hover{background:#fff;color:#121821;border-color:transparent}
+.dm-pb .pb-play svg{position:absolute;left:50%;top:50%;width:15px;height:15px;translate:-50% -50%;transition:opacity .22s ease,transform .4s var(--bounce)}
+.dm-pb .pb-play .i-play{transform:translateX(1px)}
+.dm-pb .pb-play:not(.st-play) .i-play,.dm-pb .pb-play:not(.st-pause) .i-pause,.dm-pb .pb-play:not(.st-replay) .i-replay{opacity:0;transform:scale(.4) rotate(-90deg)}
+.dm-pb .pb-play.btn-fx svg{animation:none}
+.pb-track{position:relative;flex:1;min-width:0;display:flex;align-items:center}
+.pb-track input{width:100%;margin:0}
+.pb-line{position:absolute;top:50%;left:calc(8px + (100% - 16px) * var(--k));width:2px;height:10px;margin:-5px 0 0 -1px;border-radius:1px;background:var(--pa);opacity:.85;pointer-events:none}
+.pb-key{position:absolute;top:-6px;left:calc(8px + (100% - 16px) * var(--k));width:18px;height:12px;margin-left:-9px;padding:0;border:0;background:none;cursor:pointer;z-index:1}
+.pb-key::before{content:"";position:absolute;left:4px;top:2px;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--pa);filter:drop-shadow(0 0 3px rgba(242,207,119,.55));transition:transform .2s var(--spring)}
+.pb-key:hover::before,.pb-key:focus-visible::before{transform:translateY(1px) scale(1.25)}
+.dm-pb.at-key .pb-line{box-shadow:0 0 8px rgba(242,207,119,.9);opacity:1}
+.dm-pb .pb-play.pb-wait{animation:pbWait 1.8s ease-in-out infinite}
+@keyframes pbWait{0%,100%{box-shadow:inset 0 1px 0 #fff,0 6px 18px -6px rgba(0,0,0,.7),0 0 0 0 rgba(242,207,119,0)}
+  50%{box-shadow:inset 0 1px 0 #fff,0 6px 18px -6px rgba(0,0,0,.7),0 0 0 5px rgba(242,207,119,.42),0 0 18px 3px rgba(242,207,119,.38)}}
+@media (prefers-reduced-motion:reduce){.dm-pb .pb-play.pb-wait{animation:none;box-shadow:inset 0 1px 0 #fff,0 0 0 4px rgba(242,207,119,.45)}}
+.pb-r2{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pb-r2 .chip-s{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding-left:10px;padding-right:10px;flex:1 1 auto}
+.pb-spv{display:inline-block;text-align:center;min-width:var(--spvw,2.6em)}
+@media (max-width:560px){.pb-r2{gap:4px}.pb-r2 .chip-s{padding-left:7px;padding-right:7px;gap:4px}}
+.pb-r2 .chip-s svg{width:13px;height:13px;flex:none}
+.pb-spd{display:inline-flex;align-items:center;gap:5px;font-variant-numeric:tabular-nums lining-nums}
+.pb-spd b{font-weight:600}
+.pb-spd svg{width:12px;height:12px;flex:none;opacity:.75;transition:transform .2s var(--spring)}
+.pb-spd[aria-expanded="true"] svg{transform:rotate(180deg)}
+.pb-menu{position:fixed;left:0;top:0;z-index:2147482600;min-width:86px;box-sizing:border-box;padding:4px;border-radius:11px;display:flex;flex-direction:column;gap:1px;
+  border:1px solid var(--glass-edge);background:var(--grain),var(--hud-thick);box-shadow:inset 0 1px 0 var(--glass-hi),0 16px 34px -16px rgba(0,0,0,.95)}
+.pb-menu button{appearance:none;border:0;background:none;font:inherit;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:14px;padding:5px 10px 5px 12px;border-radius:7px;
+  font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums lining-nums;text-align:left}
+.pb-menu button:hover,.pb-menu button:focus-visible{background:rgba(255,255,255,.08);color:var(--ink);outline:none}
+.pb-menu button.on{color:var(--ink);font-weight:600}
+.pb-menu button.on::after{content:"✓";color:var(--pa);font-weight:600}
+.pb-menu.pb-menu-h{flex-direction:row;gap:2px;min-width:0}
+.pb-menu.pb-menu-h button{padding:5px 9px;justify-content:center}
+.pb-menu.pb-menu-h button.on{background:rgba(242,207,119,.14);color:var(--ink)}
+.pb-menu.pb-menu-h button.on::after{content:none}
 /* 散度、旋度背景是空的时候，画布右上角的说明卡片 */
 .bgnote{position:absolute;right:12px;top:var(--bn-top,66px);z-index:7;width:min(300px,calc(100% - 24px));box-sizing:border-box;padding:11px 14px 12px;border-radius:13px;
   background:var(--hud);border:1px solid var(--glass-edge);box-shadow:inset 0 1px 0 var(--glass-hi),0 16px 36px -16px rgba(0,0,0,.85);
@@ -1019,11 +1060,7 @@ button,summary,label.sw,.seg,.chips,.cgl,.slh,.fr .fl,.fx label,.prm .pl,.cnt,.p
           <button type="button" class="tg" data-k="wheel" data-tt="lWh" data-td="tdWh" aria-pressed="false"><svg class="ic-probe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 4v16M4 12h16"/><path d="M9.6 4h4.8M9.6 20h4.8M4 9.6v4.8M20 9.6v4.8"/></svg><span data-t="dkWh">旋度小风车</span></button>
         </div>
         <div class="tgrp vbtns">
-          <button class="bb" id="bPause" type="button" aria-pressed="false">
-            <svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5" width="3.6" height="14" rx="1"/><rect x="13.9" y="5" width="3.6" height="14" rx="1"/></svg>
-            <svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.6v12.8a.8.8 0 0 0 1.2.7l10.2-6.4a.8.8 0 0 0 0-1.4L9.2 4.9A.8.8 0 0 0 8 5.6z"/></svg>
-            <span id="bPauseL">暂停</span>
-          </button>
+          
           <button class="bb ic" id="bZout" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 12h12"/></svg></button>
           <button class="bb ic" id="bZin" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button>
           <button class="bb ic" id="bHome" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.2L12 4.5l8 6.7"/><path d="M6.5 9.6V19h4.2v-5h2.6v5h4.2V9.6"/></svg></button>
@@ -1748,7 +1785,7 @@ zh:{
   tdA:"在网格上画箭头，指向 F 的方向，颜色表示大小。长按可以调密度",tdS:"画出整片流线，看场往哪里流",tdP:"让粒子顺着场流动。长按可以调速度",tdPp:"让粒子顺着场流动，速度在下面调",
   tdSL:"从红色探针出发画一条流线，拖动探针它会跟着变",tdEQ:"标出 F = 0 的点，并判断是结点、焦点、鞍点还是中心",tdSep:"进出鞍点的几条特殊流线，把平面分成几块",
   tdWh:"在探针上放一个小风车，转动的方向和快慢表示旋度",tdNC:"P = 0 和 Q = 0 的曲线：在上面，场分别是竖直的和水平的",tdTS:"从探针出发，看 x(t)、y(t) 随时间怎么变",
-  tdN:"所有箭头一样长，只看方向",tdDiv:"每一点是往外流（红）还是往里流（蓝）",tdCurl:"每一点是逆时针转（红）还是顺时针转（蓝）",tdProbePin:"拖动探针，读数跟着变；再点一下探针或点 × 收起",tipProbe:"探针",ptPos:"位置",tdProbe:"拖动探针，读别处的数值；点一下探针，这张卡片就会一直留着",
+  tdN:"所有箭头一样长，只看方向",tdDiv:"每一点是往外流（红）还是往里流（蓝）",tdCurl:"每一点是逆时针转（红）还是顺时针转（蓝）",tdProbePin:"拖动探针，读数跟着变；再点一下探针或点 × 收起",tipProbe:"探针",ptPos:"位置",pbPlay:"播放",pbPause:"暂停",pbProg:"进度",pbKey:"跳到这里：箭头即将抵消前",pbReplay:"从头再播",pbSpeedD:"放慢了更容易看清每一步",pbLoop:"循环",pbLoopD:"播完以后从头再来",pbHold:"停在标记",pbHoldD:"播到进度条上的金色标记（箭头即将抵消前）时自动停下，再按播放继续",pbSpeed:"速度",tdProbe:"拖动探针，读别处的数值；点一下探针，这张卡片就会一直留着",
 
   docTitle:"向量场画板",title:"向量场画板",sub:"输入分量，看箭头、流线和粒子在场里怎么走，并当场算出散度、旋度、环量和通量。",mode2:"二维",mode3:"三维",hEx:"例子",hComp:"分量",hEq:"平衡点",helpSum:"支持的写法",
   hParams:"参数",range:"坐标范围",density:"密度",dens2:a=>"每边 "+a.d+" 个",bg:"背景",bgNone:"无",bgDiv:"散度",bgCurl:"旋度",view:"视角",lP:"流动粒子",lSpd:"粒子速度",
@@ -1769,7 +1806,7 @@ zh:{
   e_comma:"逗号只能分隔函数参数。想一次输入整个向量，就写成 (P, Q) 再按回车，会自动拆到各栏",e_arity:a=>a.f+" 需要 "+a.n+" 个参数，例如 "+a.ex,e_funcNoArg:a=>a.f+" 后面缺少自变量，例如 "+a.f+"(x)",
   e_absUnclosed:"这个绝对值符号“|”没有闭合",e_fracArgs:"\\frac 后面要跟两组花括号，例如 \\frac{a}{b}",e_logBase:"对数的底只支持 2、10 和 e，例如 \\log_2 x",e_vecCount:a=>"这里写了 "+a.n+" 个分量，但"+(a.d===2?"二":"三")+"维需要 "+a.d+" 个",
   e_unexpectedAny:"这个式子没法识别",penBanner:"点一下画流线；拖动画路径，首尾接上算环量和通量",penDone:"完成",tip:"拖动平移，滚轮缩放；画路径工具里点一下画流线",tipClose:"知道了",keysSum:"操作和快捷键",
-  keys:[{g:"拖动空白处",d:"平移；三维里是旋转"},{g:"滚轮、双指捏合",d:"缩放"},{g:"触控板双指斜着或横着滑",d:"平移；三维里是旋转"},{g:"画路径工具里点一下",d:"从这里画一条流线；再点它的起点就删掉"},{g:"拖红点",d:"移动探针，读那一点的数值"},{k:[["P"]],d:"笔工具，画路径"},{k:[["Delete"]],d:"清除流线和路径"},{k:[["0"]],d:"回到默认视图"},{k:[["F"]],d:"全屏"},{k:[["空格"]],d:"暂停或继续动画（先点一下画布）"},{k:[["←"],["→"],["↑"],["↓"]],d:"移动探针；加 Shift 是平移"},{k:[["+"],["−"]],d:"放大、缩小"},{k:[["?"]],d:"打开快捷键列表"}],
+  keys:[{g:"拖动空白处",d:"平移；三维里是旋转"},{g:"滚轮、双指捏合",d:"缩放"},{g:"触控板双指斜着或横着滑",d:"平移；三维里是旋转"},{g:"画路径工具里点一下",d:"从这里画一条流线；再点它的起点就删掉"},{g:"拖红点",d:"移动探针，读那一点的数值"},{k:[["P"]],d:"笔工具，画路径"},{k:[["Delete"]],d:"清除流线和路径"},{k:[["0"]],d:"回到默认视图"},{k:[["F"]],d:"全屏"},{k:[["空格"]],d:"在格林、高斯、斯托克斯的演示里播放或暂停（先点一下画布）"},{k:[["←"],["→"],["↑"],["↓"]],d:"移动探针；加 Shift 是平移"},{k:[["+"],["−"]],d:"放大、缩小"},{k:[["?"]],d:"打开快捷键列表"}],
   hDisp:"显示",hAna:"分析",style:"画法",stA:"箭头",stS:"流线",stB:"两者",lWh:"旋度小风车",tbPause:"暂停动画（空格）",tbPlay:"继续动画（空格）",aNullc:"显示零等倾线",aWheel:"打开小风车",
   aCurl:"旋度背景",aDiv:"散度背景",aStream:"换成流线图",aLoopCirc:"画一圈算环量",aLoopFlux:"画一圈算通量",aLoopO:"绕原点画一圈",aLoopMiss:"画一个不包住原点的圈",kStable:"稳定",kUnstable:"不稳定",
   kSaddle:"鞍点",kCenter:"中心",eqLin:"中心是按线性近似判断的。",eqCntS:a=>a.n+" 个平衡点",gOther:"其他",pathPos:"顺着场",pathNeg:"逆着场",
@@ -1806,7 +1843,7 @@ en:{
   tdA:"Arrows on a grid point along F; their colour shows its size. Press and hold to change the density",tdS:"Streamlines across the view show where the field flows",tdP:"Particles drift along the field. Press and hold to change their speed",tdPp:"Particles drift along the field; set their speed below",
   tdSL:"The streamline through the red probe; it follows as you drag the probe",tdEQ:"Marks the points where F = 0 and tells whether each is a node, focus, saddle or centre",tdSep:"The streamlines into and out of each saddle, which divide the plane into regions",
   tdWh:"A small paddle wheel at the probe; its spin shows the curl there",tdNC:"The curves P = 0 and Q = 0, where the field points straight up or down, or straight sideways",tdTS:"Follow the probe’s path in time and plot x(t) and y(t)",
-  tdN:"Draw every arrow the same length so only direction shows",tdDiv:"Whether the field spreads out (red) or flows in (blue) at each point",tdCurl:"Whether the field turns anticlockwise (red) or clockwise (blue) at each point",tdProbePin:"Drag the probe and the readings follow; click it again, or ×, to close",tipProbe:"Probe",ptPos:"Position",tdProbe:"Drag the probe to read other points; click it to keep this card open",
+  tdN:"Draw every arrow the same length so only direction shows",tdDiv:"Whether the field spreads out (red) or flows in (blue) at each point",tdCurl:"Whether the field turns anticlockwise (red) or clockwise (blue) at each point",tdProbePin:"Drag the probe and the readings follow; click it again, or ×, to close",tipProbe:"Probe",ptPos:"Position",pbPlay:"Play",pbPause:"Pause",pbProg:"Progress",pbKey:"Jump here: just before the arrows cancel",pbReplay:"Play again",pbSpeedD:"Slow it down to follow each step",pbLoop:"Loop",pbLoopD:"Start over when it ends",pbHold:"Pause at mark",pbHoldD:"Pause at the gold mark on the progress bar, just before the arrows cancel; press play to go on",pbSpeed:"Speed",tdProbe:"Drag the probe to read other points; click it to keep this card open",
 
   docTitle:"Vector Field Sketchpad",title:"Vector Field Sketchpad",
   sub:"Type the components and watch arrows, streamlines and particles move through the field, with divergence, curl, circulation and flux computed on the spot.",
@@ -1850,7 +1887,7 @@ en:{
   e_unexpectedAny:"This expression can’t be read",
   penBanner:"Click for a streamline; drag for a path; close the loop for circulation and flux",
   penDone:"Done",tip:"Drag to pan, scroll to zoom; with Draw path, click to add a streamline",tipClose:"Got it",keysSum:"Gestures and shortcuts",
-  keys:[{g:"Drag empty space",d:"pan (rotate in 3D)"},{g:"Mouse wheel or pinch",d:"zoom"},{g:"Two-finger swipe, starting sideways or diagonally",d:"pan (rotate in 3D)"},{g:"Click (Draw path tool)",d:"draw a streamline from there; click its start again to remove it"},{g:"Drag the red dot",d:"move the probe and read values there"},{k:[["P"]],d:"pen tool for drawing paths"},{k:[["Delete"]],d:"clear streamlines and path"},{k:[["0"]],d:"reset the view"},{k:[["F"]],d:"full screen"},{k:[["Space"]],d:"pause or resume motion (click the canvas first)"},{k:[["←"],["→"],["↑"],["↓"]],d:"move the probe; with Shift, pan"},{k:[["+"],["−"]],d:"zoom in and out"},{k:[["?"]],d:"Open this list of shortcuts"}],
+  keys:[{g:"Drag empty space",d:"pan (rotate in 3D)"},{g:"Mouse wheel or pinch",d:"zoom"},{g:"Two-finger swipe, starting sideways or diagonally",d:"pan (rotate in 3D)"},{g:"Click (Draw path tool)",d:"draw a streamline from there; click its start again to remove it"},{g:"Drag the red dot",d:"move the probe and read values there"},{k:[["P"]],d:"pen tool for drawing paths"},{k:[["Delete"]],d:"clear streamlines and path"},{k:[["0"]],d:"reset the view"},{k:[["F"]],d:"full screen"},{k:[["Space"]],d:"play or pause the Green, Gauss and Stokes demos (click the canvas first)"},{k:[["←"],["→"],["↑"],["↓"]],d:"move the probe; with Shift, pan"},{k:[["+"],["−"]],d:"zoom in and out"},{k:[["?"]],d:"Open this list of shortcuts"}],
   hDisp:"Display",hAna:"Analysis",style:"Style",stA:"Arrows",stS:"Lines",stB:"Both",lWh:"Curl paddle wheel",tbPause:"Pause motion (Space)",
   tbPlay:"Resume motion (Space)",aNullc:"Show nullclines",aWheel:"Show the paddle wheel",aCurl:"Curl background",aDiv:"Divergence background",
   aStream:"Streamline plot",aLoopCirc:"Draw a loop: circulation",aLoopFlux:"Draw a loop: flux",aLoopO:"Loop around the origin",
@@ -2305,7 +2342,7 @@ function computeHeat(){const r=withRV(computeHeat0);bgStore();updateBgNote();ret
    中途再切换就从现在的透明度接着走（和“画法”的切换一样可以打断）；新的一张图算好之前，旧的先不淡出，免得中间变暗一下。
    箭头、流线的颜色也跟着背景的多少，在彩色和单色之间连续过渡 */
 const BGF={div:{w:0,cv:document.createElement("canvas"),rect:null,fv:null},curl:{w:0,cv:document.createElement("canvas"),rect:null,fv:null}};
-let BGM=0;var BG3={w:0,wc:0,m:0};
+let BGM=0;var BG3={w:0,wc:0,m:0};var FOC={w:0};
 function bgStore(){
   const k=S.bg;if(k==="none"||!BGF[k]||!S.heatRect)return;const L=BGF[k],c=L.cv;
   if(c.width!==heat.width||c.height!==heat.height){c.width=heat.width;c.height=heat.height}
@@ -2319,7 +2356,8 @@ function bgStep(dt){
   {const go=(w,t)=>reduce||!SM.ready?t:t>w?Math.min(1,w+dt/0.35):Math.max(0,w-dt/0.35);
    const td=S.mode==="3d"&&S.bg==="div"&&S.div3s>0?1:0,tc=S.mode==="3d"&&S.bg==="curl"&&S.curl3s>0?1:0;
    if(BG3.w!==td){BG3.w=go(BG3.w,td);dirty=true}if(BG3.wc!==tc){BG3.wc=go(BG3.wc,tc);dirty=true}
-   const tm=S.mode==="3d"&&(S.bg==="div"||S.bg==="curl")?1:0;if(BG3.m!==tm){BG3.m=go(BG3.m,tm);dirty=true}}
+   const tm=S.mode==="3d"&&(S.bg==="div"||S.bg==="curl")?1:0;if(BG3.m!==tm){BG3.m=go(BG3.m,tm);dirty=true}
+   const tf=S.mode==="3d"&&DM&&DM.arrowFocus?1:0;if(FOC.w!==tf){FOC.w=go(FOC.w,tf);dirty=true}}
   const want=S.mode==="2d"&&S.bg!=="none"?S.bg:null;if(want&&BGF[want]&&BGF[want].fv!==S.fver)return;
   const inst=reduce||!SM.ready||S.mode!=="2d";let ch=false;
   for(const k of["div","curl"]){const L=BGF[k],tg=want===k?1:0;if(L.old&&L.old.a>0){L.old.a=inst?0:Math.max(0,L.old.a-dt/0.35);ch=true}if(L.w===tg)continue;
@@ -3760,11 +3798,13 @@ function g3FillGlyphs(o,items,O){
 }
 /* 箭头：按投影后的远近排序（远的先画），每次镜头动了都重排 */
 function g3ArrowItems(list,cell,mref){
-  const tg=2*S.R/S.dens["3d"],it=[],maxL=tg*0.84,wf=lodWf3(),C=S.c3,R=S.R,band=Math.max(tg*0.5,1e-12),m3=bgS(BG3.m),dm3=bgS(Math.min(1,BG3.w+BG3.wc)),INK=T.inkRgb.split(",").map(Number);
+  const tg=2*S.R/S.dens["3d"],it=[],maxL=tg*0.84,wf=lodWf3(),C=S.c3,R=S.R,band=Math.max(tg*0.5,1e-12),m3=bgS(BG3.m),dm3=bgS(Math.min(1,BG3.w+BG3.wc)),INK=T.inkRgb.split(",").map(Number),
+    fw=bgS(FOC.w),fo=fw>0.001&&DM&&DM.arrowFocus?DM:null,fk=fo?fo.id+"|"+(fo.si||0)+"|"+(fo.li||0)+"|"+S.fver+"|"+S.R:"";
   for(const a of list){
     if(!(a.m>1e-12))continue;
     const d=R-Math.max(Math.abs(a.x-C[0]),Math.abs(a.y-C[1]),Math.abs(a.z-C[2]));if(d<=0)continue;
-    const q=d>=band?1:d/band,eg=q*q*(3-2*q),wl=a.c===false?wf:1,w=wl*eg,wa=Math.min(1,wl*2)*eg;if(w<0.01)continue;
+    const q=d>=band?1:d/band,eg=q*q*(3-2*q),wl=a.c===false?wf:1,w=wl*eg;let wa=Math.min(1,wl*2)*eg;if(w<0.01)continue;
+    if(fo){if(a._fk!==fk){a._fk=fk;const q=Math.min(1,fo.arrowFocus(a.x,a.y,a.z)/(fo.focusFall||0.6));a._fa=1-q*q*(3-2*q)}wa*=1-fw*(1-(0.13+0.87*a._fa))}
     const r=Math.min(1,a.m/mref),L=maxL*nmL(Math.pow(r,0.45))*w,c=cmap(r),cr=m3>0?[c[0]+(INK[0]-c[0])*m3,c[1]+(INK[1]-c[1])*m3,c[2]+(INK[2]-c[2])*m3]:c;
     projS(a.x,a.y,a.z);it.push([a.x,a.y,a.z,a.vx/a.m,a.vy/a.m,a.vz/a.m,L,cr[0]/255,cr[1]/255,cr[2]/255,wa*(1-0.5*dm3),PD]);
   }
@@ -3835,7 +3875,7 @@ function g3Sync(moved){
     if(A3!==MORPH.old){const e=morphE();if(MORPH){const l=morphList3(e);if(l){g3FillGlyphs(g.arr,g3ArrowItems(l,S.cell,S.am3||S.mref),O);s.a=null;morphed=true}}else s.a=null}
     else if(performance.now()-MORPH.born>800)MORPH=null;else morphed=true;
   }
-  const ak3=[S.am3,Math.round((S.nmv||0)*1000),S.R,S.c3.join(),Math.round(lodWf3()*400),Math.round(BG3.w*100),Math.round(BG3.wc*100),Math.round(BG3.m*100)].join("|");
+  const ak3=[S.am3,Math.round((S.nmv||0)*1000),S.R,S.c3.join(),Math.round(lodWf3()*400),Math.round(BG3.w*100),Math.round(BG3.wc*100),Math.round(BG3.m*100),Math.round(FOC.w*100),DM&&DM.arrowFocus?DM.id+(DM.si||0)+"|"+(DM.li||0):""].join("|");
   if(!morphed&&(moved||s.a!==A3||s.ak3!==ak3)){g3FillGlyphs(g.arr,g3ArrowItems(A3,S.cell,S.am3||S.mref),O);s.a=A3;s.ak3=ak3}
   if(F3&&(moved||s.f3!==F3)){g3FillGlyphs(g.arrO,g3ArrowItems(F3.list,F3.cell,F3.mref),O);g.arrO.cell=F3.cell;s.f3=F3}
   /* 流线图（重算后旧的淡出、新的淡入） */
@@ -5009,7 +5049,7 @@ function renderViews(){
 }
 
 /* ================= 显示：画法、背景、范围、密度、粒子 ================= */
-const sR=$("#sR"),sD=$("#sD"),sV=$("#sV"),bPen=$("#bPen"),bClr=$("#bClr"),bPause=$("#bPause");
+const sR=$("#sR"),sD=$("#sD"),sV=$("#sV"),bPen=$("#bPen"),bClr=$("#bClr");
 let lastSR=null;
 function syncRangeUI(){if(S.R!==lastSR&&RS.el!==sR&&!sR._rsA&&performance.now()-(sR._rsEnd||0)>400){lastSR=S.R;sR.value=Math.log10(S.R);paint(sR)}const s="±"+fmtR(S.R);setText(LG.oR,s);setText(LG.cnt,s)}
 function densLabel(){const d=S.dens[S.mode];if(!sD.matches(":active"))paint(sD);$("#oD").textContent=S.mode==="2d"?t("dens2",{d}):d+" × "+d+" × "+d}
@@ -5201,10 +5241,8 @@ function setTool(tool){
   bPen.setAttribute("aria-pressed",on);stage.classList.toggle("pen",on);
   if(on)showEl($("#banner"));else hideEl($("#banner"),160);updateHint();if(on)hideTip();
 }
-function setPaused(p){
-  S.paused=p;bPause.classList.toggle("paused",p);bPause.setAttribute("aria-pressed",p);
-  const k=p?"tbPlay":"tbPause";bPause.title=t(k);bPause.setAttribute("aria-label",t(k));$("#bPauseL").textContent=t(p?"playL":"pauseL");dirty=true;
-}
+/* 画布上的暂停键已经去掉，粒子一直在动 */
+function setPaused(p){S.paused=false}
 function updateClr(){
   const two=S.mode==="2d";
   bPen.disabled=!two;bClr.disabled=!two||!(S.pins.length||S.path);
@@ -5218,7 +5256,6 @@ function clearAll(){
 bPen.addEventListener("click",()=>setTool(S.tool==="pen"?"browse":"pen"));
 $("#bPenDone").addEventListener("click",()=>setTool("browse"));
 bClr.addEventListener("click",clearAll);
-bPause.addEventListener("click",()=>setPaused(!S.paused));
 $("#bZin").addEventListener("click",()=>zoomBtn(1/1.25));
 $("#bZout").addEventListener("click",()=>zoomBtn(1.25));
 $("#bHome").addEventListener("click",goHome);
@@ -5571,7 +5608,7 @@ cv.addEventListener("gestureend",e=>{e.preventDefault();GST.on=false},{passive:f
 /* 方向键、加减号、空格：只在画布有焦点时用，免得抢走页面滚动 */
 cv.addEventListener("keydown",e=>{
   const k=e.key;
-  if(k===" "){e.preventDefault();setPaused(!S.paused);return}
+  if(k===" "){if(DM&&DM.tl!=null){e.preventDefault();pbToggle()}return}
   if(!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","+","=","-","_"].includes(k))return;
   e.preventDefault();
   if(S.mode==="3d"){
@@ -6094,7 +6131,7 @@ const GL3=[[-0.7745966692414834,5/9],[0,8/9],[0.7745966692414834,5/9]];
 /* 抵消动画的时间线：0 → 1；减少动态效果时直接到最后一帧 */
 const easeIO=x=>x<=0?0:x>=1?1:x<0.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
 const seg01=(t,a,b)=>t<=a?0:t>=b?1:(t-a)/(b-a);
-const dmTL=d=>reduce?1:Math.min(1,Math.max(0,(performance.now()-d.anim0)/d.animDur));
+const dmTL=d=>d.tl!=null?d.tl:reduce?1:Math.min(1,Math.max(0,(performance.now()-d.anim0)/d.animDur));
 const rgbaA=(a,al)=>"rgba("+a[0]+","+a[1]+","+a[2]+","+Math.max(0,Math.min(1,al)).toFixed(3)+")";
 const tint=(a,k)=>a.map(v=>Math.round(v+(255-v)*k));
 const dmA=w=>0.45+0.55*w;
@@ -6189,7 +6226,7 @@ function startDemo0(id){
   for(const k of["sl","equil","nullc","sep","wheel"])setLayer(k,false);
   setStyle("arrows");setBg("none");
   d.enter();
-  showEl(dmEl);renderDemoButtons();renderDemoUI();dirty=true;lgPlace();
+  showEl(dmEl);renderDemoButtons();renderDemoUI();dirty=true;lgPlace();if(PTC.mode==="intro")ptcSet(null);
 }
 function stopDemo0(restore){
   if(!DM)return;DM=null;hideEl(dmEl,200);
@@ -6398,7 +6435,7 @@ function renderDemoUI(){
   dmO.innerHTML="";
   DM.fieldList().forEach((fd,i)=>{const b=document.createElement("button");b.type="button";b.className="chip-s"+(i===DM.fi?" on":"");b.textContent=L2(fd.name);
     b.addEventListener("click",()=>{if(i===DM.fi)return;DM.playing=false;dmO.querySelectorAll(".chip-s").forEach((x,k)=>x.classList.toggle("on",k===i));switchField(()=>{if(!DM)return;DM.pick(i);renderDemoUI()},demoSameView(DM.fieldList()[i]))});dmO.appendChild(b)});
-  dmC.innerHTML="";if(DM.controls)DM.controls(dmC);dmC.hidden=!dmC.children.length;
+  pbMenuClose();dmC.innerHTML="";if(DM.controls)DM.controls(dmC);if(DM.animDur&&DM.keyT!=null)playCtl(dmC,DM);dmC.hidden=!dmC.children.length;
   updateDemoInfo();placeDemoCard();fixDemoText();
 }
 function updateDemoInfo(){if(!DM)return;dmTxt.textContent=DM.text();dmN.innerHTML=DM.nums()}
@@ -6406,7 +6443,8 @@ function dmBtn(box,html,fn,cls){const b=document.createElement("button");b.type=
 const DICON={prev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
   next:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
   play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.6v12.8a.8.8 0 0 0 1.2.7l10.2-6.4a.8.8 0 0 0 0-1.4L9.2 4.9A.8.8 0 0 0 8 5.6z"/></svg>',
-  pause:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5" width="3.6" height="14" rx="1"/><rect x="13.9" y="5" width="3.6" height="14" rx="1"/></svg>'};
+  pause:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5" width="3.6" height="14" rx="1"/><rect x="13.9" y="5" width="3.6" height="14" rx="1"/></svg>',
+  replay:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4h4"/></svg>'};
 function segCtl(box,opts,cur,fn){
   const g=document.createElement("div");g.className="seg dm-seg";g.style.gridTemplateColumns="repeat("+opts.length+",auto)";
   opts.forEach((o,i)=>{const b=document.createElement("button");b.type="button";b.textContent=o;if(i===cur)b.className="on";b.addEventListener("click",()=>{if(i!==cur)fn(i)});g.appendChild(b)});box.appendChild(g);
@@ -6429,8 +6467,91 @@ function gridCtl(box,d){
 const LV={
   setLevel(i){i=clamp(i,0,this.levels.length-1);this.li=i;this.rebuild();renderDemoUI()},
   levelLabel(){const n=this.levels[this.li];return this.cube?n+" × "+n+" × "+n:n+" × "+n},
-  tick(dt){this.anim=performance.now()-this.anim0<this.animDur+60}
+  /* 播放条：时间线 tl 从 0 走到 1；倍速、循环、“抵消前停下”对三个演示通用（换演示、换档都保留）。
+     换档、换场时从头自动播一遍（和原来一样）；循环时播完在结尾停 0.8 秒再从头开始 */
+  restart(){this.tl=reduce?1:0;this.playing=!reduce;this._held=false;this._rest=0;pbSync(this)},
+  tick(dt){
+    if(this.tl==null)return;let ch=false;
+    if(this.playing){
+      if(this._rest>0){if(!DPB.loop){this._rest=0;this.playing=false;ch=true}else{this._rest-=dt;if(this._rest<=0){this._rest=0;this.tl=0;this._held=false;ch=true}}}
+      else{const k=this.tl;let n=k+dt*DPB.rate*1000/this.animDur;
+        if(DPB.hold&&!this._held&&k<=this.keyT&&n>=this.keyT){n=this.keyT;this.playing=false;this._held=true}
+        if(n>=1){n=1;if(DPB.loop)this._rest=0.8;else this.playing=false}
+        if(n!==k){this.tl=n;ch=true}}
+    }
+    this.anim=this.playing||this.tl<1;
+    if(ch)pbSync(this);
+  }
 };
+const DPB={rate:1,loop:false,hold:false},DPBR=[0.1,0.3,0.5,0.8,1];
+const DPBI={loop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a7 7 0 0 1 12-4.9L18 9"/><path d="M18 4v5h-5"/><path d="M20 12a7 7 0 0 1-12 4.9L6 15"/><path d="M6 20v-5h5"/></svg>',
+  hold:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h9"/><path d="M13 6v12"/><path d="M17 6v12"/><path d="M20 6v12"/></svg>'};
+/* 播放条：第一行是播放/暂停和进度条（金色的小竖线标出“抵消前”的位置，可以拖进度条）；
+   第二行是“循环”“抵消前停下”两个开关，最右边是倍速（点开是一张小的下拉卡片） */
+function playCtl(box,d){
+  const w=document.createElement("div");w.className="dm-pb";
+  const chip=(cls,ic,lab,tip,desc)=>'<button type="button" class="chip-s '+cls+'" data-tip="'+esc(tip)+'" data-tdesc="'+esc(desc)+'">'+ic+"<span>"+esc(lab)+"</span></button>";
+  w.innerHTML='<div class="pb-r1"><button type="button" class="bb pb-play st-play">'+DICON.pause.replace("<svg ",'<svg class="i-pause" ')+DICON.play.replace("<svg ",'<svg class="i-play" ')+DICON.replay.replace("<svg ",'<svg class="i-replay" ')+'</button><div class="pb-track" style="--k:'+d.keyT+'"><input type="range" class="pb-sc" min="0" max="1000" step="1" aria-label="'+esc(t("pbProg"))+'"><i class="pb-line"></i>'+
+    '<button type="button" class="pb-key" aria-label="'+esc(t("pbKey"))+'" data-tip="'+esc(t("pbKey"))+'"></button></div></div>'+
+    '<div class="pb-r2">'+chip("pb-loop",DPBI.loop,t("pbLoop"),t("pbLoop"),t("pbLoopD"))+chip("pb-hold",DPBI.hold,t("pbHold"),t("pbHold"),t("pbHoldD"))+
+    '<button type="button" class="chip-s pb-spd" aria-haspopup="listbox" aria-expanded="false" data-tip="'+esc(t("pbSpeed"))+'" data-tdesc="'+esc(t("pbSpeedD"))+'"><span>'+esc(t("pbSpeed"))+'</span><b class="pb-spv"></b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>';
+  box.appendChild(w);
+  const sc=w.querySelector(".pb-sc"),spd=w.querySelector(".pb-spd");
+  /* 倍速的数字占一个固定宽度（按五档里最宽的那个量），换档时按钮不会变长变短 */
+  const fit=()=>{const v=spd.querySelector(".pb-spv");if(!v||!v.isConnected)return;const pr=document.createElement("b");pr.className="pb-spv";pr.style.cssText="position:absolute;visibility:hidden;min-width:0";v.parentNode.appendChild(pr);
+    let m=0;for(const r of DPBR){pr.textContent=r+"×";m=Math.max(m,pr.getBoundingClientRect().width)}pr.remove();spd.style.setProperty("--spvw",Math.ceil(m)+"px")};
+  fit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
+  spd.addEventListener("click",e=>{e.stopPropagation();if(PBM.el)pbMenuClose();else pbMenuOpen(spd,e.detail===0)});
+  w.querySelector(".pb-play").addEventListener("click",pbToggle);
+  /* 拖进度条：拖的时候停住；松手时，原来在播就接着播 */
+  sc.addEventListener("pointerdown",()=>{const m=DM;if(m)m._wasPlay=m.playing||m._rest>0});
+  sc.addEventListener("input",()=>{const m=DM;if(!m||m.tl==null)return;m.playing=false;m._rest=0;m.tl=rv(sc)/1000;m._held=m.tl>=m.keyT;pbSync(m);dirty=true});
+  sc.addEventListener("change",()=>{const m=DM;if(!m)return;if(m._wasPlay&&m.tl<1){m.playing=true;pbSync(m);dirty=true}m._wasPlay=false});
+  /* 金色小三角：一点就跳到“抵消前”并停在那里 */
+  w.querySelector(".pb-key").addEventListener("click",()=>{const m=DM;if(!m||m.tl==null)return;m.playing=false;m._rest=0;m.tl=m.keyT;m._held=true;pbSync(m);dirty=true});
+  w.querySelector(".pb-loop").addEventListener("click",()=>{DPB.loop=!DPB.loop;if(DM)pbSync(DM)});
+  w.querySelector(".pb-hold").addEventListener("click",()=>{DPB.hold=!DPB.hold;const m=DM;if(m&&m.tl!=null&&m.tl<m.keyT)m._held=false;if(m)pbSync(m)});
+  pbSync(d);
+}
+
+/* 播放/暂停（播放键和空格键共用）：播完了就从头再播 */
+function pbToggle(){const m=DM;if(!m||m.tl==null)return;
+  if(m.playing)m.playing=false;else{if(m.tl>=1||m._rest>0){m.tl=0;m._rest=0;m._held=false}m.playing=true}pbSync(m);dirty=true}
+/* 倍速的下拉选项：贴在按钮下面（放不下就放上面）、右边对齐；点选项、点别处、按 Esc、滚动或改窗口大小都会收起 */
+const PBM={el:null,btn:null};
+function pbMenuOpen(btn,kb){
+  pbMenuClose();const m=document.createElement("div");m.className="pb-menu pb-menu-h";m.setAttribute("role","listbox");m.setAttribute("aria-label",t("pbSpeed"));
+  DPBR.forEach(v=>{const o=document.createElement("button");o.type="button";o.setAttribute("role","option");o.className=v===DPB.rate?"on":"";o.setAttribute("aria-selected",v===DPB.rate?"true":"false");o.textContent=v+"×";
+    o.addEventListener("click",ev=>{ev.stopPropagation();DPB.rate=v;pbMenuClose(true);if(DM)pbSync(DM)});m.appendChild(o)});
+  m.addEventListener("keydown",ev=>{const it=[...m.children],i=it.indexOf(document.activeElement);
+    if(ev.key==="Escape"){ev.preventDefault();ev.stopPropagation();pbMenuClose(true)}
+    else if(ev.key==="ArrowRight"||ev.key==="ArrowLeft"||ev.key==="ArrowDown"||ev.key==="ArrowUp"){ev.preventDefault();it[(i+(ev.key==="ArrowRight"||ev.key==="ArrowDown"?1:-1)+it.length)%it.length].focus()}});
+  ttHost().appendChild(m);PBM.el=m;PBM.btn=btn;PBM.t=performance.now();btn.setAttribute("aria-expanded","true");
+  const r=btn.getBoundingClientRect(),w=m.offsetWidth,h=m.offsetHeight;let y=r.bottom+6;if(y+h>innerHeight-8)y=r.top-h-6;
+  m.style.left=Math.round(Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2)))+"px";m.style.top=Math.round(Math.max(8,y))+"px";
+  if(!reduce)m.animate([{opacity:0,transform:"translateY("+(y<r.top?6:-4)+"px)"},{opacity:1,transform:"none"}],{duration:160,easing:"cubic-bezier(.2,.8,.2,1)"});
+  if(kb){const on=m.querySelector(".on")||m.firstChild;on.focus()}
+}
+function pbMenuClose(refocus){const m=PBM.el,b=PBM.btn;if(!m)return;PBM.el=null;PBM.btn=null;m.remove();if(b){b.setAttribute("aria-expanded","false");if(refocus&&b.isConnected)try{b.focus({preventScroll:true})}catch(e){}}}
+document.addEventListener("pointerdown",e=>{if(PBM.el&&!PBM.el.contains(e.target)&&!(PBM.btn&&PBM.btn.contains(e.target)))pbMenuClose()},true);
+document.addEventListener("keydown",e=>{if(PBM.el&&e.key==="Escape"){e.preventDefault();e.stopPropagation();pbMenuClose(true)}},true);
+addEventListener("resize",()=>pbMenuClose());
+/* 只在按钮所在的东西真的滚动时收起（刚打开的一瞬间、别处的滚动都不算），免得一打开就被关掉 */
+addEventListener("scroll",e=>{const b=PBM.btn;if(!PBM.el||performance.now()-(PBM.t||0)<250)return;const tg=e.target;if(tg===document||tg===document.documentElement||(tg&&tg.contains&&b&&tg.contains(b)))pbMenuClose()},true);
+/* 播放条的状态跟着时间线走：进度、播放/暂停的图标、两个开关；说明文字随阶段变化时也换掉 */
+function pbSync(d){
+  const w=dmC&&dmC.querySelector(".dm-pb");if(!w||DM!==d)return;
+  const sc=w.querySelector(".pb-sc"),pl=w.querySelector(".pb-play"),v=Math.round((d.tl||0)*1000);
+  if(+sc.value!==v){sc.value=v;paint(sc)}
+  /* 在播是暂停键；播完是“从头再播”；停在“抵消前”时播放键轻轻发光，提示按它继续 */
+  const ic=d.playing?"pause":(d.tl>=1&&!d._rest)?"replay":"play",lb=d.playing?"pbPause":ic==="replay"?"pbReplay":"pbPlay";
+  if(pl._ic!==ic){pl._ic=ic;pl.classList.remove("st-play","st-pause","st-replay");pl.classList.add("st-"+ic);pl.setAttribute("aria-label",t(lb));pl.dataset.tip=t(lb)}
+  pl.classList.toggle("pb-wait",!d.playing&&!!d._held&&Math.abs(d.tl-d.keyT)<1e-6);w.classList.toggle("at-key",Math.abs((d.tl||0)-d.keyT)<0.004);
+  const sv=w.querySelector(".pb-spv"),sl=DPB.rate+"×";if(sv&&sv.textContent!==sl){sv.textContent=sl;w.querySelector(".pb-spd").setAttribute("aria-label",t("pbSpeed")+" "+sl);w.querySelector(".pb-spd").classList.toggle("on",DPB.rate!==1)}
+  const lo=w.querySelector(".pb-loop"),ho=w.querySelector(".pb-hold");
+  lo.classList.toggle("on",DPB.loop);lo.setAttribute("aria-pressed",DPB.loop?"true":"false");ho.classList.toggle("on",DPB.hold);ho.setAttribute("aria-pressed",DPB.hold?"true":"false");
+  const tx=d.text();if(dmTxt.textContent!==tx)dmTxt.textContent=tx;
+}
 
 /* ---------- 曲线积分与路径无关 ---------- */
 const DPATH={
@@ -6543,7 +6664,7 @@ const DPATH={
 const DGREEN=Object.assign({},LV,{
   name:{zh:"格林公式",en:"Green’s theorem"},dims:{zh:"二维",en:"2D"},mode:"2d",fi:0,
   fields:[{name:{zh:"示例场",en:"Sample field"},f:["sin(y) + 0.3(x + 1)^2","sin(x)"],R:2.85},{name:{zh:"旋转",en:"Rotation"},f:["-y","x"],R:2.85},{name:{zh:"源",en:"Source"},f:["x","y"],R:2.85}],
-  levels:[1,2,4,8,16],li:0,flux:false,animDur:2800,
+  levels:[1,2,4,8,16],li:0,flux:false,animDur:2800,keyT:0.425,
   fieldList(){return this.fields},
   enter(){this.fi=0;this.li=3;this.flux=false;this.box=[-2,2,-1.5,1.5];this.exKey=null;dmLoad(this.fields[0]);this.rebuild()},
   pick(i){this.fi=i;this.exKey=null;dmLoad(this.fields[i]);this.rebuild()},
@@ -6561,7 +6682,7 @@ const DGREEN=Object.assign({},LV,{
       for(let j=0;j<N;j++)for(let i=0;i<N;i++){const J=jac(x0+(i+0.5)*dx,y0+(j+0.5)*dy,0),d=fl?J[0][0]+J[1][1]:J[1][0]-J[0][1];if(isFinite(d))ex+=d*dx*dy}
       this.exact=ex}
     let efx=0;for(const r of H)for(const q of r)efx=Math.max(efx,Math.abs(q));for(const r of Vv)for(const q of r)efx=Math.max(efx,Math.abs(q));
-    Object.assign(this,{n,hx,hy,H,Vv,cells,sum,rie,bnd,mx,efx});this.anim0=performance.now();dirty=true;updateDemoInfo();
+    Object.assign(this,{n,hx,hy,H,Vv,cells,sum,rie,bnd,mx,efx});this.anim0=performance.now();dirty=true;updateDemoInfo();this.restart();
   },
   controls(box){segCtl(box,[t("dmCirc"),t("dmFlux")],this.flux?1:0,i=>{this.flux=i===1;this.rebuild();renderDemoUI()});gridCtl(box,this)},
   texts(){const o=[];for(let k=0;k<=4;k++)o.push("g"+k,"gf"+k);return o},
@@ -6664,9 +6785,13 @@ const DGREEN=Object.assign({},LV,{
 const DGAUSS=Object.assign({},LV,{
   name:{zh:"高斯公式",en:"Divergence theorem"},dims:{zh:"三维",en:"3D"},mode:"3d",fi:0,cube:true,a:1,
   fields:[{name:{zh:"示例场",en:"Sample field"},f:["x(1 + y)","y","z^2"],R:1.6},{name:{zh:"径向",en:"Radial"},f:["x","y","z"],R:1.6},{name:{zh:"旋转（无散）",en:"Rotation (div-free)"},f:["-y","x","0"],R:1.6}],
-  levels:[1,2,3,4],li:0,animDur:3200,
+  levels:[1,2,3,4],li:0,animDur:3200,keyT:0.66,
   fieldList(){return this.fields},
   enter(){this.fi=0;this.li=1;this.exKey=null;dmLoad(this.fields[0]);this.rebuild()},
+  /* 重要的是贴着大立方体表面的箭头（穿过外表面的通量）；离表面越远越淡——立方体里面深处的也淡下去，免得挡住小立方体面上的箭头 */
+  focusFall:0.42,
+  arrowFocus(x,y,z){const C=S.c3,a=this.a,ax=Math.abs(x-C[0]),ay=Math.abs(y-C[1]),az=Math.abs(z-C[2]),m=Math.max(ax,ay,az);
+    if(m<=a)return a-m;return Math.hypot(Math.max(0,ax-a),Math.max(0,ay-a),Math.max(0,az-a))},
   pick(i){this.fi=i;this.exKey=null;dmLoad(this.fields[i]);this.rebuild()},
   faceFlux(ax,pv,u0,u1,v0,v1){
     const o=[0,0,0],ia=(ax+1)%3,ib=(ax+2)%3,du=u1-u0,dv=v1-v0;let s=0;o[ax]=pv;
@@ -6690,7 +6815,7 @@ const DGAUSS=Object.assign({},LV,{
     if(this.exKey!==this.fi){this.exKey=this.fi;let ex=0;const N=22,d=2*a/N;
       for(let i=0;i<N;i++)for(let j=0;j<N;j++)for(let k=0;k<N;k++){const J=jac(lo[0]+(i+0.5)*d,lo[1]+(j+0.5)*d,lo[2]+(k+0.5)*d),dv=J[0][0]+J[1][1]+J[2][2];if(isFinite(dv))ex+=dv*d*d*d}
       this.exact=ex}
-    Object.assign(this,{n,h,lo,cubes,sum,rie,bnd,mx,fmx});this.anim0=performance.now();dirty=true;updateDemoInfo();
+    Object.assign(this,{n,h,lo,cubes,sum,rie,bnd,mx,fmx});this.anim0=performance.now();dirty=true;updateDemoInfo();this.restart();
   },
   controls(box){gridCtl(box,this)},
   texts(){return["s0","s1","s2","s3"]},
@@ -6744,9 +6869,10 @@ const DSTOKES=Object.assign({},LV,{
   name:{zh:"斯托克斯公式",en:"Stokes’ theorem"},dims:{zh:"三维",en:"3D"},mode:"3d",fi:0,
   fields:[{name:{zh:"示例场",en:"Sample field"},f:["-y^3","x^3","z"],R:1.4,c3:[0,0,0.4]},{name:{zh:"绕 z 轴旋转",en:"Rotation about z"},f:["-y","x","0"],R:1.4,c3:[0,0,0.4]},{name:{zh:"斜着转",en:"Tilted rotation"},f:["z - y","x","y"],R:1.4,c3:[0,0,0.4]}],
   surf:[{zh:"平面圆盘",en:"Flat disk",k:"flat"},{zh:"上半球面",en:"Hemisphere",k:"hemi"},{zh:"高穹顶",en:"Tall dome",k:"dome",h:1.6}],si:1,
-  levels:[1,2,4,8],li:0,animDur:2800,
+  levels:[1,2,4,8],li:0,animDur:2800,keyT:0.425,
   fieldList(){return this.fields},
   enter(){this.fi=0;this.li=2;this.si=1;this.exKey=null;dmLoad(this.fields[0]);this.rebuild()},
+  arrowFocus(x,y,z){const P=this.fpts;if(!P)return 0;let m=1e9;for(const p of P){const d=(p[0]-x)*(p[0]-x)+(p[1]-y)*(p[1]-y)+(p[2]-z)*(p[2]-z);if(d<m)m=d}return Math.max(0,Math.sqrt(m)-0.09)},
   pick(i){this.fi=i;this.exKey=null;dmLoad(this.fields[i]);this.rebuild()},
   /* 把正方形 [−1,1]² 均匀地映到单位圆盘上，再抬成圆顶 z = h(1 − x² − y²)；正方形的边界正好映成圆周 */
   P(u,v){
@@ -6778,7 +6904,9 @@ const DSTOKES=Object.assign({},LV,{
     let bnd=0;for(let i=0;i<n;i++)bnd+=U[0][i]-U[n][i];for(let j=0;j<n;j++)bnd+=Vd[j][n]-Vd[j][0];
     if(this.exKey!==this.fi){this.exKey=this.fi;let ex=0,pr=[1,0,0];const M=720;
       for(let k=1;k<=M;k++){const th=2*Math.PI*k/M,q=[Math.cos(th),Math.sin(th),0];ex+=seg3(pr,q);pr=q}this.exact=ex}
-    Object.assign(this,{U,Vd,cells,sum,rie,bnd,mx});this.anim0=performance.now();dirty=true;updateDemoInfo();
+    /* 曲面上取一组点：箭头离这张曲面越远越淡 */
+    const fp=[];for(let a=0;a<=12;a++)for(let b=0;b<=12;b++)fp.push(this.P(-1+a/6,-1+b/6));this.fpts=fp;
+    Object.assign(this,{U,Vd,cells,sum,rie,bnd,mx});this.anim0=performance.now();dirty=true;updateDemoInfo();this.restart();
   },
   controls(box){segCtl(box,this.surf.map(L2),this.si,i=>{this.si=i;this.exKey=null;this.rebuild();renderDemoUI()});gridCtl(box,this)},
   texts(){return["k0","k1","k2","k3"]},
