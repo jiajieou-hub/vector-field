@@ -18,7 +18,9 @@ export type Shot =
   | { kind: "flash"; clip: string; label: string; scale?: number; punch?: "A" | "B" }
   | { kind: "final" };
 
-export type Cut = { from: number; to: number; name: string; shot: Shot };
+/* tail: frames the shot keeps playing over the next one while it fades away (a transition);
+   enter: the shot settles from slightly smaller as it comes in */
+export type Cut = { from: number; to: number; name: string; shot: Shot; tail?: number; enter?: boolean };
 
 const M = BEATS.motifs;
 
@@ -45,10 +47,22 @@ const motif = (
   ];
 };
 
-/* Build-up: a 3D gallery cut on every beat of bars 31-32, then three eighth-note cuts
-   through the drum fill into the final hit */
+/* The answering phrase in bars 27-28 (F#, E, D#, E, C#): five more attractors, the last
+   held until the sixth motif */
+const P = BEATS.phrase;
+const phrase: [number, number, string, Shot][] = (
+  [
+    ["a-aizawa", "Aizawa attractor"],
+    ["a-thomas", "Thomas attractor"],
+    ["a-rossler", "Rössler attractor"],
+    ["a-lorenz-top", "Lorenz, from above"],
+    ["g-halvorsen", "Halvorsen attractor"],
+  ] as [string, string][]
+).map(([clip, label], k) => [P[k], k < 4 ? P[k + 1] : M[5][0], clip, { kind: "flash", clip, label, punch: k === 0 ? "A" : "B" }]);
+
+/* Build-up: a 3D gallery cut on every beat of bars 31-32 up to the strong hit before the
+   fill, then one cut on each of the fill's seven quick hits into the final drum */
 const gallery: [string, string][] = [
-  ["g-halvorsen", "Halvorsen attractor"],
   ["g-dipole3d", "Magnetic dipole"],
   ["g-wire", "Current in a straight wire"],
   ["g-helix", "Rising helix"],
@@ -57,10 +71,16 @@ const gallery: [string, string][] = [
   ["g-lorenz", "Lorenz attractor"],
 ];
 const fill: [string, string][] = [
+  ["f-charge", "Point charge"],
   ["f-wave", "F = (cos(x + y), sin(x − y))"],
   ["f-cells", "F = (sin y, sin x)"],
+  ["f-predator", "Predator–prey · div F"],
+  ["f-circ", "Circulation, 16 × 16"],
+  ["f-dome", "Hemisphere"],
+  ["f-vdp", "Van der Pol · div F"],
   ["f-dipole", "Dipole"],
 ];
+const F = BEATS.fill;
 const B31 = bar(31);
 const buildup: [number, number, string, Shot][] = [
   ...gallery.map(([clip, label], k): [number, number, string, Shot] => [
@@ -69,15 +89,16 @@ const buildup: [number, number, string, Shot][] = [
     clip,
     { kind: "flash", clip, label, punch: "B" },
   ]),
+  /* the strong hit just before the fill, then the seven quick hits */
   ...fill.map(([clip, label], k): [number, number, string, Shot] => [
-    bar(32, 3.5) + k * (Q / 2),
-    k === 2 ? HIT : bar(32, 3.5) + (k + 1) * (Q / 2),
+    k === 0 ? BEATS.fillStart : F[k - 1],
+    k === fill.length - 1 ? HIT : F[k],
     clip,
     { kind: "flash", clip, label, punch: "B" },
   ]),
 ];
-/* the gallery's last shot runs up to the fill */
-buildup[gallery.length - 1][1] = bar(32, 3.5);
+/* the gallery's last shot runs up to the strong hit */
+buildup[gallery.length - 1][1] = BEATS.fillStart;
 
 const raw: [number, number, string, Shot][] = [
   [0, bar(3), "Intro", { kind: "intro" }],
@@ -92,7 +113,8 @@ const raw: [number, number, string, Shot][] = [
   ...motif(3, [["f-path", "Path independence", 1.3], ["f-flux", "Flux, cell by cell", 1.3], ["f-circ", "Circulation, 16 × 16", 1.3]],
     { kind: "window", clip: "green", kicker: "06 · THEOREMS, STEP BY STEP", title: "See why Green's theorem works" }, "Green", M[4][0]),
   ...motif(4, [["f-charge", "Point charge"], ["f-gradxyz", "∇(xyz)"], ["f-radial", "Radial field · div F"]],
-    { kind: "lorenz" }, "Lorenz", M[5][0]),
+    { kind: "lorenz" }, "Lorenz", P[0]),
+  ...phrase,
   ...motif(5, [["f-disk", "Flat disk"], ["f-dome", "Hemisphere"], ["f-tall", "Tall dome"]],
     { kind: "window", clip: "gauss", kicker: "08 · AND IN 3D", title: "The divergence and Stokes' theorems" }, "Gauss", BEATS.buildup),
   ...buildup,
@@ -100,3 +122,8 @@ const raw: [number, number, string, Shot][] = [
 ];
 
 export const CUTS: Cut[] = raw.map(([a, b, name, shot]) => ({ from: f(a), to: f(b), name, shot }));
+
+/* A short transition from typing to the display styles (bar 6): the typing scene zooms
+   through and fades out over a third of a second while the next one settles in */
+CUTS.find((c) => c.name === "Type a field")!.tail = 9;
+CUTS.find((c) => c.name === "Display styles")!.enter = true;

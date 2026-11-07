@@ -1,5 +1,5 @@
 import { Audio } from "@remotion/media";
-import { AbsoluteFill, Sequence, staticFile } from "remotion";
+import { AbsoluteFill, Easing, Sequence, interpolate, staticFile, useCurrentFrame } from "remotion";
 import { Final } from "./scenes/Final";
 import { Flash } from "./scenes/Flash";
 import { Intro } from "./scenes/Intro";
@@ -37,12 +37,46 @@ const ShotView: React.FC<{ shot: Shot }> = ({ shot }) => {
   }
 };
 
-/* Every shot is a hard cut on the music; the times live in src/timeline.ts */
+/* Wraps a shot for a transition: `enter` settles it from slightly smaller; `tail` keeps it
+   playing over the start of the next shot while it zooms through, blurs and fades */
+const Transition: React.FC<{ len: number; tail: number; enter: boolean; children: React.ReactNode }> = ({ len, tail, enter, children }) => {
+  const frame = useCurrentFrame();
+  const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+  const out = tail ? Math.max(0, Math.min(1, (frame - len) / tail)) : 0;
+  const e = Easing.bezier(0.4, 0, 0.2, 1)(out);
+  const inS = enter ? interpolate(frame, [0, 12], [0.955, 1], { ...clamp, easing: Easing.bezier(0.16, 1, 0.3, 1) }) : 1;
+  return (
+    <AbsoluteFill
+      style={{
+        opacity: 1 - e,
+        scale: String(inS * (1 + 0.07 * e)),
+        filter: e > 0 ? `blur(${(8 * e).toFixed(2)}px)` : undefined,
+      }}
+    >
+      {children}
+    </AbsoluteFill>
+  );
+};
+
+/* Every shot is cut on the music (one short transition aside); the times live in src/timeline.ts */
 export const Promo: React.FC<PromoProps> = ({ music }) => (
   <AbsoluteFill style={{ backgroundColor: "#090c12" }}>
     {CUTS.map((c, i) => (
-      <Sequence key={i} name={c.name} from={c.from} durationInFrames={c.to - c.from} premountFor={30}>
-        <ShotView shot={c.shot} />
+      <Sequence
+        key={i}
+        name={c.name}
+        from={c.from}
+        durationInFrames={c.to - c.from + (c.tail ?? 0)}
+        premountFor={30}
+        style={c.tail ? { zIndex: 1 } : undefined}
+      >
+        {c.tail || c.enter ? (
+          <Transition len={c.to - c.from} tail={c.tail ?? 0} enter={!!c.enter}>
+            <ShotView shot={c.shot} />
+          </Transition>
+        ) : (
+          <ShotView shot={c.shot} />
+        )}
       </Sequence>
     ))}
     {music ? <Audio name="Music" src={staticFile(music)} /> : null}

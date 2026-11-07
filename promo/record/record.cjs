@@ -214,6 +214,55 @@ class Rec {
   async typeAt(text, times) {
     for (let i = 0; i < text.length; i++) { await this.until(times[i]); await this.page.keyboard.type(text[i]); }
   }
+  /* Move the cursor (pressed or not) through pts so that it arrives at time tEnd, the way a
+     hand moves: along a smooth curve, slow to start and to stop, easing off round bends, and
+     not quite even. profile 'bell' is one quick stroke; 'plateau' keeps a steadier speed in
+     the middle, as when drawing. */
+  async stroke(pts, tEnd, { profile = 'bell', seed = 1 } = {}) {
+    const P = [[this.mx, this.my], ...pts], S = [];
+    for (let i = 0; i < P.length - 1; i++) {
+      const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
+      for (let k = 0; k < 20; k++) {
+        const u = k / 20, u2 = u * u, u3 = u2 * u;
+        S.push([0, 1].map((d) => 0.5 * (2 * p1[d] + (-p0[d] + p2[d]) * u + (2 * p0[d] - 5 * p1[d] + 4 * p2[d] - p3[d]) * u2 + (-p0[d] + 3 * p1[d] - 3 * p2[d] + p3[d]) * u3)));
+      }
+    }
+    S.push(P[P.length - 1]);
+    const n = S.length, len = [0];
+    for (let i = 1; i < n; i++) len.push(len[i - 1] + Math.hypot(S[i][0] - S[i - 1][0], S[i][1] - S[i - 1][1]));
+    const L = len[n - 1] || 1;
+    /* slowness: more on tight bends, plus a gentle uneven wobble */
+    const w = S.map((_, i) => {
+      let bend = 0;
+      if (i > 0 && i < n - 1) {
+        const a1 = Math.atan2(S[i][1] - S[i - 1][1], S[i][0] - S[i - 1][0]), a2 = Math.atan2(S[i + 1][1] - S[i][1], S[i + 1][0] - S[i][0]);
+        let da = Math.abs(a2 - a1); if (da > Math.PI) da = 2 * Math.PI - da;
+        bend = da / Math.max(0.5, (len[i + 1] - len[i - 1]) / 2);
+      }
+      return (1 + 18 * bend) * (1 + 0.14 * Math.sin(2 * Math.PI * (1.6 * len[i] / L) + seed) + 0.06 * Math.sin(2 * Math.PI * (4.3 * len[i] / L) + 2 * seed));
+    });
+    for (let pass = 0; pass < 6; pass++) for (let i = 1; i < n - 1; i++) w[i] = (w[i - 1] + 2 * w[i] + w[i + 1]) / 4;
+    const T = [0];
+    for (let i = 1; i < n; i++) T.push(T[i - 1] + (len[i] - len[i - 1]) * (w[i] + w[i - 1]) / 2);
+    for (let i = 0; i < n; i++) T[i] /= T[n - 1] || 1;
+    const bell = (u) => u * u * u * (10 - 15 * u + 6 * u * u);
+    const ease = profile === 'bell' ? bell : (u) => {
+      /* ease in over the first 18 %, out over the last 22 %, steady between */
+      const a = 0.18, b = 0.22, v = 1 / (1 - a / 2 - b / 2);
+      if (u < a) return v * u * u / (2 * a);
+      if (u > 1 - b) return 1 - v * (1 - u) * (1 - u) / (2 * b);
+      return v * (u - a / 2);
+    };
+    const N = Math.max(1, Math.round((tEnd - this.now()) * FPS));
+    let j = 0;
+    for (let k = 1; k <= N; k++) {
+      const e = ease(k / N);
+      while (j < n - 2 && T[j + 1] < e) j++;
+      const f = T[j + 1] > T[j] ? Math.min(1, Math.max(0, (e - T[j]) / (T[j + 1] - T[j]))) : 1;
+      this.mx = S[j][0] + (S[j + 1][0] - S[j][0]) * f; this.my = S[j][1] + (S[j + 1][1] - S[j][1]) * f;
+      await this.page.mouse.move(this.mx, this.my); await this.cursor(); await this.frame();
+    }
+  }
   /* press at t0 on pts[0], pass through the points at a steady speed, let go at t1 */
   async dragAt(pts, t0, t1) {
     await this.reach(pts[0][0], pts[0][1], t0); await this.press();
@@ -336,7 +385,13 @@ const CLIPS = {
     const path = [[px, py], await p(1.4, 0.1), await p(0.3, -1.3), await p(-1.8, -0.5), await p(-0.8, 1.3)];
     r.mx = px + 60; r.my = py + 40; await r.cursor();
     r.start('probe');
-    await r.dragAt(path, m(bar(10)), m(bar(12)));
+    /* grab on bar 10, sweep across, stop a moment to read, sweep on; let go about half a
+       second before the next melody */
+    await r.reach(path[0][0], path[0][1], m(bar(10))); await r.press();
+    await r.stroke([path[1], path[2]], m(22.4), { seed: 1 });
+    await r.until(m(22.8));
+    await r.stroke([path[3], path[4], await p(0.5, 0.9)], m(25.3), { seed: 2 });
+    await r.release();
     await r.until(m(BEATS.motifs[1][0]) + 0.3);
     r.finish();
   },
@@ -357,7 +412,13 @@ const CLIPS = {
     const m = at(BEATS.motifs[1][3]);
     r.start('hopf');
     const xAt = await r.slider('#params input[type=range]'), y = xAt.y;
-    await r.dragAt([[xAt(-0.6), y], [xAt(0.05), y], [xAt(0.9), y]], m(bar(14)), m(bar(16)));
+    /* grab on bar 14, ease up to the bifurcation, pause, then on to 0.9, letting go about
+       half a second before the next melody */
+    await r.reach(xAt(-0.6), y, m(bar(14))); await r.press();
+    await r.stroke([[xAt(0), y]], m(30.1), { seed: 3 });
+    await r.until(m(30.5));
+    await r.stroke([[xAt(0.9), y]], m(32.5), { seed: 4 });
+    await r.release();
     await r.until(m(BEATS.pickups[1]) + 0.3);
     r.finish();
   },
@@ -376,15 +437,18 @@ const CLIPS = {
       pts.push(await r.w2s(0.1 + rr * Math.cos(a), 0.05 + rr * Math.sin(a)));
     }
     pts.push(pts[0]);
-    await r.dragAt(pts, m(bar(19)), m(bar(20)));
+    /* start drawing on the third beat of bar 18 and close the loop on bar 20 */
+    await r.reach(pts[0][0], pts[0][1], m(bar(18, 3))); await r.press();
+    await r.stroke(pts.slice(1), m(bar(20)), { profile: 'plateau', seed: 5 });
+    await r.release();
     await r.until(m(bar(20, 2)));
     await r.key('p'); // leave draw-path mode, so its banner goes away
     await r.until(m(BEATS.motifs[3][0]) + 0.3);
     r.finish();
   },
 
-  /* Green's theorem, full screen: step the grid 1 → 16 x 16 on four beats; the inner
-     edges then cancel and the last animation ends near the next bar line */
+  /* Green's theorem, full screen: step the grid 1 → 16 x 16 every half bar; each level
+     starts its animation, and the last one (2.8 s) ends as the next melody begins */
   async green(r) {
     await r.open('rotation');
     await DEMO(r, { demo: 1, level: 0 });
@@ -396,9 +460,10 @@ const CLIPS = {
     const xAt = await r.slider('#dm input[type=range]'), y = xAt.y;
     await r.reach(xAt(0), y, 0.12); await r.press();
     for (let v = 1; v <= 4; v++) {
-      const tv = m(bar(22, v));
+      const tv = m(bar(22 + Math.floor((v - 1) / 2), (v - 1) % 2 ? 3 : 1));
+      /* the level changes as the thumb passes halfway, so the move is centred on the beat */
       await r.until(tv - 4 / FPS);
-      await r.moveTo(xAt(v), y, 4 / FPS);
+      await r.stroke([[xAt(v), y]], tv + 3 / FPS, { seed: v });
     }
     await r.frame(3); await r.release();
     await r.until(m(BEATS.motifs[4][0]) + 0.3);
@@ -471,6 +536,11 @@ const FLASH = [
   ['g-sink', 'sink', { arrows: false, particles: true }, { cam: [-2.3, 0.35, 1.35], spin: 0.4 }],
   ['g-rotz', 'rotation-z', { bg: 'curl' }, { cam: [-2.3, 0.35, 1.35], spin: 0.4 }],
   ['g-lorenz', 'lorenz', {}, { cam: [-0.6, 0.25, 1.3], spin: 0.4 }],
+  /* the second melody in the 3D chapter: more strange attractors */
+  ['a-aizawa', 'aizawa', { arrows: false, stream: true }, { cam: [-2.3, 0.3, 1.3], spin: 0.4 }],
+  ['a-thomas', 'thomas', { arrows: false, stream: true }, { cam: [-2.0, 0.45, 1.3], spin: 0.4 }],
+  ['a-rossler', 'rossler', { arrows: false, stream: true }, { cam: [-2.4, 0.5, 1.3], spin: 0.4 }],
+  ['a-lorenz-top', 'lorenz', { arrows: false, stream: true }, { cam: [-1.2, 1.15, 1.25], spin: 0.5 }],
 ];
 for (const [name, hash, set, o = {}] of FLASH) {
   CLIPS[name] = async (r) => {
