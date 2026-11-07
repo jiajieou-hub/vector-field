@@ -46,6 +46,8 @@ There's nothing to install and no account to make. It works on desktop and on ph
 | Divergence theorem | 3D | Split a cube into small cubes and watch the shared faces cancel. |
 | Stokes' theorem | 3D | Patches on a surface, its boundary curve, and why the result doesn't depend on the surface. |
 
+The Green, Gauss and Stokes demos have a play bar: pause, drag through the animation, slow it down to 0.1×, loop it, or have it stop at the gold mark just before the arrows cancel.
+
 ![The Green's theorem demo: an 8 × 8 grid of cells coloured by curl, with the boundary circulation matching the area integral](docs/screenshots/demo-green.jpg)
 
 **3D**
@@ -97,7 +99,7 @@ The input is forgiving. Write a formula the way you'd write it on paper.
 | Move the probe | Drag the red dot · arrow keys | Drag the red dot |
 | Draw a streamline or path (2D) | <kbd>P</kbd>, then click for a streamline or drag for a path | Draw-path button, then tap or drag |
 | Clear streamlines and path | <kbd>Delete</kbd> | Clear button |
-| Pause / resume motion | <kbd>Space</kbd> | Pause button |
+| Play / pause a theorem demo | <kbd>Space</kbd> (click the canvas first) | Play button in the demo card |
 | Reset the view | <kbd>0</kbd> | Home button |
 | Full screen | <kbd>F</kbd> | Full-screen button |
 | Show all shortcuts | <kbd>?</kbd> | Settings (⚙) → Shortcuts |
