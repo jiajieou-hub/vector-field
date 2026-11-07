@@ -15,7 +15,7 @@ export type Shot =
   | { kind: "intro" }
   | { kind: "window"; clip: string; kicker: string; title: string; zoom?: "type" | "loop" }
   | { kind: "lorenz" }
-  | { kind: "flash"; clip: string; label: string; scale?: number; punch?: "A" | "B" }
+  | { kind: "flash"; clip: string; label: string; scale?: number; punch?: "A" | "B"; light?: boolean }
   | { kind: "final" };
 
 /* tail: frames the shot keeps playing over the next one while it fades away (a transition);
@@ -122,6 +122,14 @@ const raw: [number, number, string, Shot][] = [
 ];
 
 export const CUTS: Cut[] = raw.map(([a, b, name, shot]) => ({ from: f(a), to: f(b), name, shot }));
+
+/* From the fifth motif until the drum fill, only the first cut of each motif (into the
+   point charge, into the flat disk) flashes; the other cuts are plain */
+for (const c of CUTS) {
+  if (c.shot.kind !== "flash" || c.from < f(M[4][0]) || c.from >= f(BEATS.fillStart)) continue;
+  if (c.from === f(M[4][0]) || c.from === f(M[5][0])) continue;
+  c.shot.light = false;
+}
 
 /* A short transition from typing to the display styles (bar 6): the typing scene zooms
    through and fades out over a third of a second while the next one settles in */

@@ -9,14 +9,15 @@ import {
 } from "remotion";
 import { mono } from "../theme";
 
-/* A short full-screen shot for the fast cuts. It lands with a small push back and a
-   flash of light: "A" (the first note of a motif) harder than "B" (the quick notes). */
+/* A short full-screen shot for the fast cuts. It lands with a small push back and (unless
+   light is false) a flash of light: "A" (the first note of a motif) harder than "B". */
 export const Flash: React.FC<{
   clip: string;
   label: string;
   scale?: number;
   punch?: "A" | "B";
-}> = ({ clip, label, scale = 1, punch = "B" }) => {
+  light?: boolean;
+}> = ({ clip, label, scale = 1, punch = "B", light = true }) => {
   const frame = useCurrentFrame();
   const hard = punch === "A";
   return (
@@ -28,12 +29,17 @@ export const Flash: React.FC<{
         style={{
           width: 1920,
           height: 1080,
-          scale: interpolate(frame, [0, hard ? 14 : 7], [scale * (hard ? 1.14 : 1.07), scale], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-            easing: Easing.bezier(0.16, 1, 0.3, 1),
-            output: "perceptual-scale",
-          }),
+          scale: interpolate(
+            frame,
+            [0, hard ? 14 : 7],
+            [scale * (hard ? 1.14 : 1.07), scale],
+            {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+              easing: Easing.bezier(0.16, 1, 0.3, 1),
+              output: "perceptual-scale",
+            },
+          ),
         }}
       />
       <AbsoluteFill
@@ -64,16 +70,23 @@ export const Flash: React.FC<{
         />
         {label}
       </Interactive.Div>
-      <AbsoluteFill
-        name="Light"
-        style={{
-          backgroundColor: "#fff8e8",
-          opacity: interpolate(frame, [0, hard ? 6 : 3], [hard ? 0.32 : 0.16, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          }),
-        }}
-      />
+      {light ? (
+        <AbsoluteFill
+          name="Light"
+          style={{
+            backgroundColor: "#fff8e8",
+            opacity: interpolate(
+              frame,
+              [0, hard ? 6 : 3],
+              [hard ? 0.32 : 0.16, 0],
+              {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+              },
+            ),
+          }}
+        />
+      ) : null}
     </AbsoluteFill>
   );
 };

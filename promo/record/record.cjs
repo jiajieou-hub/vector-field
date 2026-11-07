@@ -373,25 +373,22 @@ const CLIPS = {
     r.finish();
   },
 
-  /* Shear flow, full screen: drag the probe across two bars */
+  /* Shear flow, full screen, plain background, paddle wheel on: drag the probe at a steady
+     speed from bar 10 until about half a second before the next melody. The path stays in
+     the lower part of the picture, so the probe card never has to flip below the probe. */
   async probe(r) {
     await r.open('shear');
-    await r.eval(() => { const b = document.querySelectorAll('#acts2 button'); b[0].click(); b[1].click(); }); // curl background, paddle wheel
+    await r.eval(() => document.querySelectorAll('#acts2 button')[1].click()); // paddle wheel
     await r.fullscreenUI();
     await r.tick(20);
     const T0 = BEATS.motifs[0][3], m = at(T0);
-    const [px, py] = await r.eval(() => window.__vf.probe());
-    const p = async (x, y) => r.w2s(x, y);
-    const path = [[px, py], await p(1.4, 0.1), await p(0.3, -1.3), await p(-1.8, -0.5), await p(-0.8, 1.3)];
-    r.mx = px + 60; r.my = py + 40; await r.cursor();
+    const path = [[1010, 430], [1180, 560], [880, 680], [480, 610], [330, 440], [560, 340], [790, 400]];
+    /* move the probe to the start of the path, off camera */
+    await r.drag([await r.eval(() => window.__vf.probe()), path[0]], 0.5);
+    r.mx = path[0][0] + 70; r.my = path[0][1] + 50; await r.cursor();
+    await r.tick(20);
     r.start('probe');
-    /* grab on bar 10, sweep across, stop a moment to read, sweep on; let go about half a
-       second before the next melody */
-    await r.reach(path[0][0], path[0][1], m(bar(10))); await r.press();
-    await r.stroke([path[1], path[2]], m(22.4), { seed: 1 });
-    await r.until(m(22.8));
-    await r.stroke([path[3], path[4], await p(0.5, 0.9)], m(25.3), { seed: 2 });
-    await r.release();
+    await r.dragAt(path, m(bar(10)), m(25.3));
     await r.until(m(BEATS.motifs[1][0]) + 0.3);
     r.finish();
   },

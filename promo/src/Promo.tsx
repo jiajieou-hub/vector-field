@@ -31,7 +31,7 @@ const ShotView: React.FC<{ shot: Shot }> = ({ shot }) => {
     case "lorenz":
       return <LorenzScene />;
     case "flash":
-      return <Flash clip={shot.clip} label={shot.label} scale={shot.scale} punch={shot.punch} />;
+      return <Flash clip={shot.clip} label={shot.label} scale={shot.scale} punch={shot.punch} light={shot.light} />;
     case "final":
       return <Final />;
   }
