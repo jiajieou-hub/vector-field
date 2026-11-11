@@ -1,6 +1,6 @@
 # YouTube upload notes
 
-Suggested text for uploading `out/promo.mp4`. Edit freely.
+Suggested text for uploading `video/promo.mp4`. Edit freely.
 
 ## Title
 
@@ -37,5 +37,5 @@ vector field, vector calculus, multivariable calculus, divergence, curl, Green's
 ## Settings
 
 - Category: Education
-- Thumbnail: `out/thumbnail.png` (render with `npx remotion still Thumbnail out/thumbnail.png`)
+- Thumbnail: `video/thumbnail.png` (render with `npx remotion still Thumbnail out/thumbnail.png`, then copy it there)
 - Music: "Lunar Landing" from the YouTube Audio Library. Check its licence in the Audio Library: if it says attribution is required, keep the music line in the description exactly as the Audio Library gives it.

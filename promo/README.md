@@ -68,6 +68,8 @@ npx remotion render Promo out/promo.mp4
 
 The result is a 1920 × 1080, 30 fps H.264 MP4, ready to upload to YouTube.
 
+The final cut and its thumbnail are kept in git under `video/` (`video/promo.mp4`, `video/thumbnail.png`); `out/` is ignored. Copy a new render there when it replaces the final version.
+
 ### The soundtrack
 
 The video is cut to "Lunar Landing" from the YouTube Audio Library, trimmed to 67 s with an extra drum hit at the end. The audio file is not in the repository: put your copy at `public/music/lunar-landing.wav`. To render without sound, pass `--props='{"music":""}'`.
