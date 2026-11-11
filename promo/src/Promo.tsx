@@ -1,108 +1,84 @@
 import { Audio } from "@remotion/media";
-import { linearTiming, TransitionSeries } from "@remotion/transitions";
-import { fade } from "@remotion/transitions/fade";
-import {
-  AbsoluteFill,
-  interpolate,
-  staticFile,
-  useVideoConfig,
-} from "remotion";
-import { Facts, Outro } from "./scenes/Closing";
-import {
-  GreenScene,
-  HopfScene,
-  LoopScene,
-  ProbeScene,
-  StylesScene,
-  TypeScene,
-} from "./scenes/Features2D";
+import { AbsoluteFill, Easing, Sequence, interpolate, staticFile, useCurrentFrame } from "remotion";
+import { Final } from "./scenes/Final";
+import { Flash } from "./scenes/Flash";
 import { Intro } from "./scenes/Intro";
-import { LorenzScene, Showcase3D } from "./scenes/Scenes3D";
+import { LorenzScene } from "./scenes/Scenes3D";
+import { WindowScene } from "./scenes/WindowScene";
+import { LoopZoom, TypeZoom } from "./scenes/Zooms";
+import { CUTS, DURATION, type Shot } from "./timeline";
+
+export const PROMO_DURATION = DURATION;
 
 export type PromoProps = {
-  /* A file in public/, e.g. "music.mp3". Leave empty for a silent video. */
+  /* A file in public/. The cut is timed to this track (see src/beats.json). */
   music: string;
 };
 
-/* Every cut is a 12-frame cross-fade, so the total is the sum of the 14 scenes minus 12 for each of the 13 cuts. */
-export const PROMO_DURATION =
-  120 + 128 + 214 + 143 + 155 + 180 + 182 + 180 + 4 * 85 + 110 + 150 - 12 * 13;
-
-export const Promo: React.FC<PromoProps> = ({ music }) => {
-  const { durationInFrames, fps } = useVideoConfig();
-  return (
-    <AbsoluteFill style={{ backgroundColor: "#090c12" }}>
-      <TransitionSeries>
-        <TransitionSeries.Sequence name="Intro" durationInFrames={120}>
-          <Intro />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
-        <TransitionSeries.Sequence name="Type a field" durationInFrames={128}>
-          <TypeScene />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
-        <TransitionSeries.Sequence name="Display styles" durationInFrames={214}>
-          <StylesScene />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
-        <TransitionSeries.Sequence name="Probe" durationInFrames={143}>
-          <ProbeScene />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
-        <TransitionSeries.Sequence name="Hopf" durationInFrames={155}>
-          <HopfScene />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
-        <TransitionSeries.Sequence name="Loop" durationInFrames={180}>
-          <LoopScene />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
-        <TransitionSeries.Sequence name="Green" durationInFrames={182}>
-          <GreenScene />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
-        <TransitionSeries.Sequence name="Lorenz" durationInFrames={180}>
-          <LorenzScene />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
-        <TransitionSeries.Sequence name="Halvorsen" durationInFrames={85}>
-          <Showcase3D clip="halvorsen" name="Halvorsen" label="STRANGE ATTRACTOR" />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
-        <TransitionSeries.Sequence name="Magnetic dipole" durationInFrames={85}>
-          <Showcase3D clip="dipole3d" name="Magnetic dipole" label="MAGNETIC FIELD" />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
-        <TransitionSeries.Sequence name="Straight wire" durationInFrames={85}>
-          <Showcase3D clip="wire" name="Current in a straight wire" label="MAGNETIC FIELD" />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
-        <TransitionSeries.Sequence name="Rising helix" durationInFrames={85}>
-          <Showcase3D clip="helix" name="Rising helix" label="STREAMLINES" />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
-        <TransitionSeries.Sequence name="Facts" durationInFrames={110}>
-          <Facts />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: 12 })} />
-        <TransitionSeries.Sequence name="Outro" durationInFrames={150}>
-          <Outro />
-        </TransitionSeries.Sequence>
-      </TransitionSeries>
-      {music ? (
-        <Audio
-          name="Music"
-          src={staticFile(music)}
-          volume={(f) =>
-            interpolate(
-              f,
-              [0, 1 * fps, durationInFrames - 2 * fps, durationInFrames],
-              [0, 0.8, 0.8, 0],
-              { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
-            )
-          }
+const ShotView: React.FC<{ shot: Shot }> = ({ shot }) => {
+  switch (shot.kind) {
+    case "intro":
+      return <Intro />;
+    case "window":
+      return (
+        <WindowScene
+          clip={shot.clip}
+          kicker={shot.kicker}
+          title={shot.title}
+          zoom={shot.zoom === "type" ? TypeZoom : shot.zoom === "loop" ? LoopZoom : undefined}
         />
-      ) : null}
+      );
+    case "lorenz":
+      return <LorenzScene />;
+    case "flash":
+      return <Flash clip={shot.clip} label={shot.label} scale={shot.scale} punch={shot.punch} light={shot.light} />;
+    case "final":
+      return <Final />;
+  }
+};
+
+/* Wraps a shot for a transition: `enter` settles it from slightly smaller; `tail` keeps it
+   playing over the start of the next shot while it zooms through, blurs and fades */
+const Transition: React.FC<{ len: number; tail: number; enter: boolean; children: React.ReactNode }> = ({ len, tail, enter, children }) => {
+  const frame = useCurrentFrame();
+  const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+  const out = tail ? Math.max(0, Math.min(1, (frame - len) / tail)) : 0;
+  const e = Easing.bezier(0.4, 0, 0.2, 1)(out);
+  const inS = enter ? interpolate(frame, [0, 12], [0.955, 1], { ...clamp, easing: Easing.bezier(0.16, 1, 0.3, 1) }) : 1;
+  return (
+    <AbsoluteFill
+      style={{
+        opacity: 1 - e,
+        scale: String(inS * (1 + 0.07 * e)),
+        filter: e > 0 ? `blur(${(8 * e).toFixed(2)}px)` : undefined,
+      }}
+    >
+      {children}
     </AbsoluteFill>
   );
 };
+
+/* Every shot is cut on the music (one short transition aside); the times live in src/timeline.ts */
+export const Promo: React.FC<PromoProps> = ({ music }) => (
+  <AbsoluteFill style={{ backgroundColor: "#090c12" }}>
+    {CUTS.map((c, i) => (
+      <Sequence
+        key={i}
+        name={c.name}
+        from={c.from}
+        durationInFrames={c.to - c.from + (c.tail ?? 0)}
+        premountFor={30}
+        style={c.tail ? { zIndex: 1 } : undefined}
+      >
+        {c.tail || c.enter ? (
+          <Transition len={c.to - c.from} tail={c.tail ?? 0} enter={!!c.enter}>
+            <ShotView shot={c.shot} />
+          </Transition>
+        ) : (
+          <ShotView shot={c.shot} />
+        )}
+      </Sequence>
+    ))}
+    {music ? <Audio name="Music" src={staticFile(music)} /> : null}
+  </AbsoluteFill>
+);

@@ -5,7 +5,7 @@ A short promo video for [Vector Field Sketchpad](https://jiajieou-hub.github.io/
 It is built in two steps:
 
 1. **Record footage** of the app itself (`record/`). A headless browser opens `../index.html` and records each clip frame by frame into `public/clips/*.webm`.
-2. **Edit** the clips into the video with Remotion (`src/`): titles, captions, push-ins, cross-fades and an end card.
+2. **Edit** the clips into the video with Remotion (`src/`): titles, captions, push-ins and an end card, every cut timed to the soundtrack.
 
 The clips and the rendered video are not committed (they are large). Record them once, then edit and render as often as you like.
 
@@ -31,13 +31,17 @@ npx playwright install chromium
 node record/record.cjs
 ```
 
-This records every clip (about 15 to 25 minutes). To redo only some of them, name them:
+This records every clip (about 30 to 40 minutes). To redo only some of them, name them:
 
 ```bash
 node record/record.cjs hopf loop
 ```
 
-Clips: `bg`, `type` (also writes `styles`), `probe`, `hopf`, `loop`, `green`, `lorenz`, `halvorsen`, `dipole3d`, `wire`, `helix`. Each scene is described in `CLIPS` in `record/record.cjs`.
+Clips: `bg`, `type` (also writes `styles`), `probe`, `hopf`, `loop`, `green`, `gauss`, `lorenz`, and the short full-screen shots for the fast cuts (`f-…` and the `g-…` gallery). Each is described in `record/record.cjs`.
+
+The interactive clips are timed to the music: clicks, typed letters and drags land on beats taken from `src/beats.json`. If you change the soundtrack, update that file and record again.
+
+To check a framing quickly, `STILL=some/folder node record/record.cjs f-wave g-wire` saves one small picture per clip instead of recording it.
 
 How the recorder works:
 
@@ -52,7 +56,9 @@ How the recorder works:
 npm run dev
 ```
 
-This opens Remotion Studio. The main video is **Promo**; each scene can also be opened on its own under **Scenes**. Captions are plain text in `src/scenes/*.tsx`, and scene lengths are the `durationInFrames` values in `src/Promo.tsx` (30 frames = 1 second).
+This opens Remotion Studio. The main video is **Promo**; the intro, a flash shot and the end card can also be opened on their own under **Scenes**.
+
+The cut list is `src/timeline.ts`: which clip plays when, its caption or label, all computed from the beat map in `src/beats.json` (bar lines, the four notes of the recurring melody, the drum accents and the final hit). Captions and labels are plain text there.
 
 ## 3. Render
 
@@ -62,19 +68,15 @@ npx remotion render Promo out/promo.mp4
 
 The result is a 1920 × 1080, 30 fps H.264 MP4, ready to upload to YouTube.
 
-### Adding music
+The final cut and its thumbnail are kept in git under `video/` (`video/promo.mp4`, `video/thumbnail.png`); `out/` is ignored. Copy a new render there when it replaces the final version.
 
-The video is silent by default. To add a track, put the file in `public/` (for example `public/music.mp3`) and render with:
+### The soundtrack
 
-```bash
-npx remotion render Promo out/promo.mp4 --props='{"music":"music.mp3"}'
-```
-
-The music fades in over the first second and out over the last two. Use music you have the rights to. The YouTube Audio Library (YouTube Studio → Audio Library) has free tracks you can use in YouTube videos.
+The video is cut to "Lunar Landing" from the YouTube Audio Library, trimmed to 67 s with an extra drum hit at the end. The audio file is not in the repository: put your copy at `public/music/lunar-landing.wav`. To render without sound, pass `--props='{"music":""}'`.
 
 ## Fonts
 
-`public/fonts/` holds the typefaces the app uses (Source Serif 4, IBM Plex Sans, JetBrains Mono, and a tiny subset of Noto Serif SC with just 向量场画板中文), so rendering needs no network. All are under the SIL Open Font License.
+`public/fonts/` holds the typefaces the app uses (Source Serif 4, IBM Plex Sans, JetBrains Mono, and a tiny subset of Noto Serif SC with just 向量场画板中文, now unused), so rendering needs no network. All are under the SIL Open Font License.
 
 ## License
 

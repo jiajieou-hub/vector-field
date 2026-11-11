@@ -1,6 +1,6 @@
 # YouTube upload notes
 
-Suggested text for uploading `out/promo.mp4`. Edit freely.
+Suggested text for uploading `video/promo.mp4`. Edit freely.
 
 ## Title
 
@@ -24,6 +24,8 @@ In this video:
 • Step-by-step demos of Green's, Stokes' and the divergence theorem
 • 3D fields and strange attractors: the Lorenz and Halvorsen attractors, a magnetic dipole, the field of a current-carrying wire
 
+Music: "Lunar Landing" (YouTube Audio Library)
+
 Made for students and teachers of multivariable calculus, differential equations, electromagnetism and fluid mechanics. The interface is in English and 中文.
 
 Feedback is welcome: open an issue on GitHub or email jiajie_ou@berkeley.edu.
@@ -35,5 +37,5 @@ vector field, vector calculus, multivariable calculus, divergence, curl, Green's
 ## Settings
 
 - Category: Education
-- Thumbnail: `out/thumbnail.png` (render with `npx remotion still Thumbnail out/thumbnail.png`)
-- The video has no audio. Adding music from the YouTube Audio Library is easiest in YouTube Studio → Editor → Audio, or render it in (see README).
+- Thumbnail: `video/thumbnail.png` (render with `npx remotion still Thumbnail out/thumbnail.png`, then copy it there)
+- Music: "Lunar Landing" from the YouTube Audio Library. Check its licence in the Audio Library: if it says attribution is required, keep the music line in the description exactly as the Audio Library gives it.

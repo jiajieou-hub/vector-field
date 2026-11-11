@@ -43,6 +43,9 @@ function pageSource() {
     'probe:()=>{const r=cv.getBoundingClientRect(),q=probeScreen();return[r.left+q[0],r.top+q[1]]},' +
     'center2:()=>{const r=cv.getBoundingClientRect(),o=[r.left+sx2(0),r.top+sy2(0)];panBy(r.left+r.width/2-o[0],r.top+r.height/2-o[1])}};');
   patch('function drawGizmo(c){', 'if(window.__noGizmo)return;');
+  patch('function probeDot(c,x,y,s){', 'if(window.__noGizmo)return;');
+  /* demo shots with the card hidden: no room kept for the card */
+  patch('function demoPad(){', 'if(window.__noCard)return 0;');
   /* with the interface hidden, the 3D box ignores the (hidden) bottom toolbar and centres in the whole frame */
   html = html.replace('const av=Math.max(80,H-TBH);\n  PJ.sc=Math.min(av*(TBH?0.29:0.26),',
     'const TBH_=window.__noGizmo?0:TBH,av=Math.max(80,H-TBH_);\n  PJ.sc=Math.min(av*(TBH_?0.29:0.26),');
@@ -73,6 +76,8 @@ window.__cursor = (x, y, down) => {
 
 const NO_ANIM = '*,*::before,*::after{transition:none!important;animation-duration:0s!important;animation-delay:0s!important}#ttip{display:none!important}';
 const HIDE_UI = '.tl,.lgcard,.tbar,.vbtns,#drL,.toast,.tip,.ptcard,.tt{display:none!important}';
+
+class StillDone extends Error {}
 
 /* ---------- recorder ---------- */
 class Rec {
@@ -134,6 +139,12 @@ class Rec {
     for (let i = 0; i < n; i++) {
       await this.tick();
       if (!this.clip) continue;
+      /* STILL=<dir>: save the first frame of each clip as a small preview and skip the rest */
+      if (process.env.STILL) {
+        fs.mkdirSync(process.env.STILL, { recursive: true });
+        await this.page.screenshot({ path: path.join(process.env.STILL, this.clip.name + '.jpg'), type: 'jpeg', quality: 70, scale: 'css' });
+        console.log('  still', this.clip.name); this.clip = null; throw new StillDone();
+      }
       const r = await this.cdp.send('Page.captureScreenshot', { format: 'jpeg', quality: 95, optimizeForSpeed: true });
       fs.writeFileSync(path.join(this.clip.dir, String(this.clip.n++).padStart(5, '0') + '.jpg'), Buffer.from(r.data, 'base64'));
     }
@@ -185,6 +196,87 @@ class Rec {
     for (const ch of text) { await this.page.keyboard.type(ch); await this.frame(Math.max(1, Math.round(FPS / cps))); }
   }
   async key(k) { await this.page.keyboard.press(k); await this.frame(1); }
+
+  /* ---- timed input: times are seconds into the current clip, so actions can land on the beat ---- */
+  now() { return this.clip ? this.clip.n / FPS : 0; }
+  async until(sec) { while (this.clip && this.clip.n < Math.round(sec * FPS)) await this.frame(); }
+  /* travel to (x, y) and press exactly at `at` */
+  async reach(x, y, at, maxMove = 0.45) {
+    const mv = Math.max(1 / FPS, Math.min(maxMove, at - this.now() - 2 / FPS));
+    await this.until(at - 2 / FPS - mv);
+    await this.moveTo(x, y, mv); await this.until(at);
+  }
+  async clickAt(sel, at) {
+    const [x, y] = await this.center(sel);
+    await this.reach(x, y, at); await this.press(); await this.frame(3); await this.release();
+  }
+  /* type one character at each of the given times */
+  async typeAt(text, times) {
+    for (let i = 0; i < text.length; i++) { await this.until(times[i]); await this.page.keyboard.type(text[i]); }
+  }
+  /* Move the cursor (pressed or not) through pts so that it arrives at time tEnd, the way a
+     hand moves: along a smooth curve, slow to start and to stop, easing off round bends, and
+     not quite even. profile 'bell' is one quick stroke; 'plateau' keeps a steadier speed in
+     the middle, as when drawing. */
+  async stroke(pts, tEnd, { profile = 'bell', seed = 1 } = {}) {
+    const P = [[this.mx, this.my], ...pts], S = [];
+    for (let i = 0; i < P.length - 1; i++) {
+      const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
+      for (let k = 0; k < 20; k++) {
+        const u = k / 20, u2 = u * u, u3 = u2 * u;
+        S.push([0, 1].map((d) => 0.5 * (2 * p1[d] + (-p0[d] + p2[d]) * u + (2 * p0[d] - 5 * p1[d] + 4 * p2[d] - p3[d]) * u2 + (-p0[d] + 3 * p1[d] - 3 * p2[d] + p3[d]) * u3)));
+      }
+    }
+    S.push(P[P.length - 1]);
+    const n = S.length, len = [0];
+    for (let i = 1; i < n; i++) len.push(len[i - 1] + Math.hypot(S[i][0] - S[i - 1][0], S[i][1] - S[i - 1][1]));
+    const L = len[n - 1] || 1;
+    /* slowness: more on tight bends, plus a gentle uneven wobble */
+    const w = S.map((_, i) => {
+      let bend = 0;
+      if (i > 0 && i < n - 1) {
+        const a1 = Math.atan2(S[i][1] - S[i - 1][1], S[i][0] - S[i - 1][0]), a2 = Math.atan2(S[i + 1][1] - S[i][1], S[i + 1][0] - S[i][0]);
+        let da = Math.abs(a2 - a1); if (da > Math.PI) da = 2 * Math.PI - da;
+        bend = da / Math.max(0.5, (len[i + 1] - len[i - 1]) / 2);
+      }
+      return (1 + 18 * bend) * (1 + 0.14 * Math.sin(2 * Math.PI * (1.6 * len[i] / L) + seed) + 0.06 * Math.sin(2 * Math.PI * (4.3 * len[i] / L) + 2 * seed));
+    });
+    for (let pass = 0; pass < 6; pass++) for (let i = 1; i < n - 1; i++) w[i] = (w[i - 1] + 2 * w[i] + w[i + 1]) / 4;
+    const T = [0];
+    for (let i = 1; i < n; i++) T.push(T[i - 1] + (len[i] - len[i - 1]) * (w[i] + w[i - 1]) / 2);
+    for (let i = 0; i < n; i++) T[i] /= T[n - 1] || 1;
+    const bell = (u) => u * u * u * (10 - 15 * u + 6 * u * u);
+    const ease = profile === 'bell' ? bell : (u) => {
+      /* ease in over the first 18 %, out over the last 22 %, steady between */
+      const a = 0.18, b = 0.22, v = 1 / (1 - a / 2 - b / 2);
+      if (u < a) return v * u * u / (2 * a);
+      if (u > 1 - b) return 1 - v * (1 - u) * (1 - u) / (2 * b);
+      return v * (u - a / 2);
+    };
+    const N = Math.max(1, Math.round((tEnd - this.now()) * FPS));
+    let j = 0;
+    for (let k = 1; k <= N; k++) {
+      const e = ease(k / N);
+      while (j < n - 2 && T[j + 1] < e) j++;
+      const f = T[j + 1] > T[j] ? Math.min(1, Math.max(0, (e - T[j]) / (T[j + 1] - T[j]))) : 1;
+      this.mx = S[j][0] + (S[j + 1][0] - S[j][0]) * f; this.my = S[j][1] + (S[j + 1][1] - S[j][1]) * f;
+      await this.page.mouse.move(this.mx, this.my); await this.cursor(); await this.frame();
+    }
+  }
+  /* press at t0 on pts[0], pass through the points at a steady speed, let go at t1 */
+  async dragAt(pts, t0, t1) {
+    await this.reach(pts[0][0], pts[0][1], t0); await this.press();
+    const seg = []; let L = 0;
+    for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); seg.push(l); L += l; }
+    const n = Math.max(1, Math.round((t1 - t0) * FPS));
+    for (let k = 1; k <= n; k++) {
+      let d = (k / n) * L, i = 0; while (i < seg.length - 1 && d > seg[i]) { d -= seg[i]; i++; }
+      const f = seg[i] ? Math.min(1, d / seg[i]) : 1;
+      this.mx = pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f; this.my = pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f;
+      await this.page.mouse.move(this.mx, this.my); await this.cursor(); await this.frame();
+    }
+    await this.release();
+  }
   async center(sel) {
     const b = await this.page.locator(sel).first().boundingBox();
     if (!b) throw new Error('not visible: ' + sel);
@@ -204,61 +296,104 @@ class Rec {
 }
 
 /* ---------- the clips ---------- */
+/* The music: every clip below is timed against src/beats.json. A clip's time 0 is the
+   moment it appears in the video (T0, in seconds into the song), so `m(t)` turns a time in
+   the song into a time in the clip. */
+const BEATS = require('../src/beats.json');
+const BAR = BEATS.bar, Q = BAR / 4;
+const bar = (n, beat = 1) => BEATS.bar0 + (n - 1) * BAR + (beat - 1) * Q;
+const at = (T0) => (t) => t - T0;
+
+/* Set the display from inside the page: toggles, background, formula */
+const SET = (o) => {
+  const t = (k) => document.querySelector('.mid .tg[data-k=' + k + ']');
+  for (const k of ['arrows', 'stream', 'particles']) if (k in o) { const on = t(k).getAttribute('aria-pressed') === 'true'; if (on !== o[k]) t(k).click(); }
+  if (o.bg) document.querySelector('#bgSeg button[data-bg=' + o.bg + ']').click();
+  if (o.f) {
+    const ids = ['#fP', '#fQ', '#fR'];
+    o.f.forEach((v, i) => { const e = document.querySelector(ids[i]); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); });
+  }
+};
+/* Start a demo (0 path, 1 Green, 2 Gauss, 3 Stokes) and pick its options */
+const DEMO = async (r, o) => {
+  await r.eval(() => { document.querySelector('details[data-k=demo]').open = true; });
+  await r.tick(5);
+  await r.eval((i) => document.querySelectorAll('#demos .demo-b')[i].click(), o.demo);
+  await r.tick(40);
+  await r.eval((o) => {
+    if (o.field != null) document.querySelectorAll('#dmO .chip-s')[o.field].click();
+    if (o.seg != null) document.querySelectorAll('#dm .seg.dm-seg button')[o.seg].click();
+    if (o.level != null) { const s = document.querySelector('#dm input[type=range]'); s.value = o.level; s.dispatchEvent(new Event('input', { bubbles: true })); s.dispatchEvent(new Event('change', { bubbles: true })); }
+  }, o);
+};
+const HIDE_CARD = '#dm{display:none!important}';
+
 const CLIPS = {
   /* Intro / outro background: particles only, no interface */
   async bg(r) {
     await r.open('dipole', { fullscreen: true, hideUI: true, warm: 3 });
     await r.eval(() => {
       document.querySelector('.mid .tg[data-k=arrows]').click();
-      window.__vf.S.hover = { x: 1e3, y: 1e3 }; // the probe is clamped to the top-right corner, which the edit crops away
+      window.__vf.S.hover = { x: 1e3, y: 1e3 };
     });
     await r.tick(45);
     r.start('bg'); await r.hold(9); r.finish();
   },
 
-  /* Typing a field (window), then switching how it is drawn (full screen) */
+  /* Bars 3-5: type P = sin(y), Q = sin(x), one letter per sixteenth note, so each formula
+     takes effect (after the page's 350 ms pause) right on a bar line.
+     Then bars 6-8 in full screen: each display change is clicked on a beat. */
   async type(r) {
     await r.open('rotation');
+    r.mx = VW * 0.78; r.my = VH * 0.5; await r.cursor();
+    let m = at(bar(3));
     r.start('type');
-    await r.hold(0.3);
-    await r.clickSel('#fP', 0.5);
-    await r.key('Control+A'); await r.type('sin(y)', 14);
-    await r.hold(0.3);
-    await r.clickSel('#fQ', 0.4);
-    await r.key('Control+A'); await r.type('sin(x)', 14);
-    await r.hold(1.5);
+    const six = (t) => [0, 1, 2, 3, 4, 5].map((i) => m(t) + i * Q / 4);
+    await r.clickAt('#fP', m(bar(3, 2)));
+    await r.key('Control+A');
+    await r.typeAt('sin(y)', six(bar(3, 3)));
+    await r.clickAt('#fQ', m(bar(4, 2)));
+    await r.key('Control+A');
+    await r.typeAt('sin(x)', six(bar(4, 3)));
+    await r.reach(VW * 0.42, VH * 0.62, m(bar(5, 2)), 0.6);
+    await r.until(m(bar(6)) + 0.3);
     r.finish();
 
     await r.fullscreenUI();
     r.mx = VW * 0.62; r.my = VH * 0.55; await r.cursor();
+    m = at(bar(6));
     r.start('styles');
-    await r.hold(0.3);
-    await r.clickSel('.mid .tg[data-k=stream]'); await r.hold(0.8);
-    await r.clickSel('.mid .tg[data-k=arrows]', 0.35); await r.hold(0.8);
-    /* (sin y, sin x) has zero divergence, so go straight to the curl heat-map */
-    await r.clickSel('#bDrL', 0.5); await r.hold(0.2);
-    await r.clickSel('#bgSeg button[data-bg=curl]'); await r.hold(0.3);
-    await r.clickSel('#bDrL', 0.4); await r.hold(1.5);
+    await r.clickAt('.mid .tg[data-k=stream]', m(bar(6, 3)));
+    await r.clickAt('.mid .tg[data-k=arrows]', m(bar(7)));
+    await r.clickAt('#bDrL', m(bar(7, 3)));
+    await r.clickAt('#bgSeg button[data-bg=curl]', m(bar(8)));
+    await r.clickAt('#bDrL', m(bar(8, 2)));
+    await r.reach(VW * 0.7, VH * 0.4, m(bar(8, 3)), 0.5);
+    await r.until(m(BEATS.pickups[0]) + 0.3);
     r.finish();
   },
 
-  /* Shear flow, full screen: straight streamlines, yet the paddle wheel turns */
+  /* Shear flow, full screen, plain background, paddle wheel on: drag the probe at a steady
+     speed from bar 10 until about half a second before the next melody. The path stays in
+     the lower part of the picture, so the probe card never has to flip below the probe. */
   async probe(r) {
     await r.open('shear');
-    await r.eval(() => { const b = document.querySelectorAll('#acts2 button'); b[0].click(); b[1].click(); }); // curl background, paddle wheel
+    await r.eval(() => document.querySelectorAll('#acts2 button')[1].click()); // paddle wheel
     await r.fullscreenUI();
     await r.tick(20);
+    const T0 = BEATS.motifs[0][3], m = at(T0);
+    const path = [[1010, 430], [1180, 560], [880, 680], [480, 610], [330, 440], [560, 340], [790, 400]];
+    /* move the probe to the start of the path, off camera */
+    await r.drag([await r.eval(() => window.__vf.probe()), path[0]], 0.5);
+    r.mx = path[0][0] + 70; r.my = path[0][1] + 50; await r.cursor();
+    await r.tick(20);
     r.start('probe');
-    await r.hold(0.3);
-    const [px, py] = await r.eval(() => window.__vf.probe());
-    const p = async (x, y) => r.w2s(x, y);
-    const path = [[px, py], await p(1.4, 0.1), await p(0.3, -1.3), await p(-1.8, -0.5), await p(-0.8, 1.3)];
-    await r.drag(path, 3.0);
-    await r.hold(0.8);
+    await r.dragAt(path, m(bar(10)), m(25.3));
+    await r.until(m(BEATS.motifs[1][0]) + 0.3);
     r.finish();
   },
 
-  /* Hopf bifurcation (window, the slider is in the side panel): drag a and watch the limit cycle appear */
+  /* Hopf bifurcation (window): drag a from -0.6 to 0.9 over two bars */
   async hopf(r) {
     await r.open('hopf');
     await r.eval(() => {
@@ -268,56 +403,85 @@ const CLIPS = {
       document.querySelector('.mid .tg[data-k=sl]').click(); // streamline through the probe
     });
     await r.tick(20);
-    /* put the probe just off the origin: its streamline spirals in for a < 0 and out onto the limit cycle for a > 0 */
     await r.drag([await r.eval(() => window.__vf.probe()), await r.w2s(0.18, 0.12)], 0.6);
     await r.moveTo(VW - 380, VH - 200, 0.4);
     await r.tick(40);
+    const m = at(BEATS.motifs[1][3]);
     r.start('hopf');
-    await r.hold(0.3);
     const xAt = await r.slider('#params input[type=range]'), y = xAt.y;
-    await r.drag([[xAt(-0.6), y], [xAt(0.05), y], [xAt(0.9), y]], 3.2);
-    await r.hold(1.0);
+    /* grab on bar 14, ease up to the bifurcation, pause, then on to 0.9, letting go about
+       half a second before the next melody */
+    await r.reach(xAt(-0.6), y, m(bar(14))); await r.press();
+    await r.stroke([[xAt(0), y]], m(30.1), { seed: 3 });
+    await r.until(m(30.5));
+    await r.stroke([[xAt(0.9), y]], m(32.5), { seed: 4 });
+    await r.release();
+    await r.until(m(BEATS.pickups[1]) + 0.3);
     r.finish();
   },
 
-  /* Point vortex, full screen: draw a loop around the origin */
+  /* Point vortex, full screen: pick the pen on a bar line, draw the loop in exactly one bar */
   async loop(r) {
     await r.open('vortex');
     await r.fullscreenUI();
     r.mx = VW * 0.5; r.my = VH * 0.7; await r.cursor();
+    const m = at(BEATS.motifs[2][3]);
     r.start('loop');
-    await r.hold(0.3);
-    await r.clickSel('#bPen', 0.5);
+    await r.clickAt('#bPen', m(bar(18)));
     const pts = [];
     for (let k = 0; k <= 64; k++) {
       const a = -0.6 + (k / 64) * 2 * Math.PI, rr = 1.45 + 0.12 * Math.sin(3 * a + 0.4);
       pts.push(await r.w2s(0.1 + rr * Math.cos(a), 0.05 + rr * Math.sin(a)));
     }
     pts.push(pts[0]);
-    await r.drag(pts, 2.3);
-    await r.hold(0.4);
+    /* start drawing on the third beat of bar 18 and close the loop on bar 20 */
+    await r.reach(pts[0][0], pts[0][1], m(bar(18, 3))); await r.press();
+    await r.stroke(pts.slice(1), m(bar(20)), { profile: 'plateau', seed: 5 });
+    await r.release();
+    await r.until(m(bar(20, 2)));
     await r.key('p'); // leave draw-path mode, so its banner goes away
-    await r.hold(1.6);
+    await r.until(m(BEATS.motifs[3][0]) + 0.3);
     r.finish();
   },
 
-  /* Green's theorem demo, full screen: step the grid from 1 cell to 16 x 16 */
+  /* Green's theorem, full screen: step the grid 1 → 16 x 16 every half bar; each level
+     starts its animation, and the last one (2.8 s) ends as the next melody begins */
   async green(r) {
     await r.open('rotation');
-    await r.eval(() => { const d = document.querySelector('details[data-k=demo]'); d.open = true; });
-    await r.tick(5);
-    await r.eval(() => document.querySelector('button.demo-b:nth-child(2)').click());
-    await r.tick(20);
+    await DEMO(r, { demo: 1, level: 0 });
     await r.fullscreenUI();
-    await r.eval(() => { const s = document.querySelector('#dm input[type=range]'); s.value = 0; s.dispatchEvent(new Event('input', { bubbles: true })); s.dispatchEvent(new Event('change', { bubbles: true })); });
     await r.tick(30);
     r.mx = VW * 0.55; r.my = VH * 0.75; await r.cursor();
+    const m = at(BEATS.motifs[3][3]);
     r.start('green');
-    await r.hold(0.3);
     const xAt = await r.slider('#dm input[type=range]'), y = xAt.y;
-    await r.moveTo(xAt(0), y, 0.5); await r.frame(2); await r.press(); await r.hold(0.2);
-    for (let v = 1; v <= 4; v++) { await r.moveTo(xAt(v), y, 0.3); await r.hold(0.75); }
-    await r.release(); await r.hold(0.8);
+    await r.reach(xAt(0), y, 0.12); await r.press();
+    for (let v = 1; v <= 4; v++) {
+      const tv = m(bar(22 + Math.floor((v - 1) / 2), (v - 1) % 2 ? 3 : 1));
+      /* the level changes as the thumb passes halfway, so the move is centred on the beat */
+      await r.until(tv - 4 / FPS);
+      await r.stroke([[xAt(v), y]], tv + 3 / FPS, { seed: v });
+    }
+    await r.frame(3); await r.release();
+    await r.until(m(BEATS.motifs[4][0]) + 0.3);
+    r.finish();
+  },
+
+  /* Divergence theorem, full screen: 2 x 2 x 2 cubes, filmed so the inner faces cancel
+     during the two seconds it is on screen */
+  async gauss(r) {
+    await r.open('rotation-z');
+    await DEMO(r, { demo: 2 });
+    await r.fullscreenUI();
+    await r.eval(() => window.__vf.setCam(-2.3, 0.42, 1.0));
+    r.mx = VW * 0.4; r.my = VH * 0.85; await r.cursor();
+    await r.tick(60);
+    /* the demo opens at 2 x 2 x 2 and has already played; replay it so the inner faces
+       cancel (from 66 % of its 3.2 s) about half a second into the shot */
+    await r.eval(() => document.querySelector('#dmC .pb-play').click());
+    await r.tick(Math.round(1.6 * FPS));
+    r.start('gauss');
+    await r.during(2.4, (t) => r.eval((t) => window.__vf.setCam(-2.3 + 0.25 * t, 0.42, 1.0), t));
     r.finish();
   },
 
@@ -331,39 +495,88 @@ const CLIPS = {
     r.finish();
   },
 };
-/* Short 3D shots: [clip, example, camera yaw, show streamlines instead of arrows] */
-for (const [name, hash, yaw, lines] of [
-  ['halvorsen', 'halvorsen', -2.1, false],
-  ['dipole3d', 'magnetic-dipole', -2.3, true],
-  ['wire', 'wire', -2.3, true],
-  ['helix', 'helix', -2.3, true],
-]) {
+
+/* Flash shots for the fast cuts: full screen, no interface, 1.3 s each.
+   [clip, example, display settings, options]
+   options: cam [yaw, pitch, zoom] and spin (radians of yaw over the shot) for 3D;
+   demo {...} to run a demo with its card hidden. */
+const FLASH = [
+  /* motif 1: the looks */
+  ['f-dipole', 'dipole', { arrows: false, stream: true, particles: true }],
+  ['f-wave', 'rotation', { arrows: false, stream: true, particles: true, bg: 'curl', f: ['cos(x + y)', 'sin(x - y)'] }],
+  ['f-cells', 'rotation', { arrows: true, stream: false, particles: true, bg: 'curl', f: ['sin(y)', 'sin(x)'] }],
+  /* motif 2: dynamical systems */
+  ['f-vdp', 'van-der-pol', { arrows: false, stream: true, particles: true, bg: 'div' }],
+  ['f-pendulum', 'pendulum', { arrows: false, stream: true, particles: true }],
+  ['f-predator', 'predator-prey', { arrows: false, stream: true, particles: true, bg: 'div' }],
+  /* motif 3: flows */
+  ['f-cylinder', 'cylinder', { arrows: false, stream: true, particles: true }],
+  ['f-saddle', 'saddle', { arrows: false, stream: true, particles: true, bg: 'div', f: ['x + 0.4 sin(2y)', '-y + 0.4 sin(2x)'] }],
+  ['f-spiral', 'spiral-sink', { arrows: false, stream: true, particles: true }],
+  /* motif 4: the theorems in 2D */
+  ['f-path', 'rotation', {}, { demo: { demo: 0 } }],
+  ['f-flux', 'rotation', {}, { demo: { demo: 1, field: 2, seg: 1, level: 3 } }],
+  ['f-circ', 'rotation', {}, { demo: { demo: 1, level: 4 } }],
+  /* motif 5: into 3D */
+  ['f-charge', 'charge-3d', { arrows: false, stream: true }, { cam: [-2.3, 0.35, 1.35], spin: 0.35 }],
+  ['f-gradxyz', 'grad-xyz', { arrows: false, stream: true }, { cam: [-2.0, 0.4, 1.35], spin: 0.35 }],
+  ['f-radial', 'radial', { bg: 'div' }, { cam: [-2.5, 0.3, 1.35], spin: 0.35 }],
+  /* motif 6: Stokes' theorem, three surfaces with the same boundary */
+  ['f-disk', 'rotation-z', {}, { demo: { demo: 3, seg: 0, level: 2 }, cam: [-2.3, 0.5, 1.3], spin: 0.3 }],
+  ['f-dome', 'rotation-z', {}, { demo: { demo: 3, seg: 1, level: 2 }, cam: [-2.2, 0.45, 1.3], spin: 0.3 }],
+  ['f-tall', 'rotation-z', {}, { demo: { demo: 3, seg: 2, level: 2 }, cam: [-2.1, 0.4, 1.3], spin: 0.3 }],
+  /* build-up: a gallery of 3D fields */
+  ['g-halvorsen', 'halvorsen', {}, { cam: [-2.1, 0.35, 1.3], spin: 0.4 }],
+  ['g-dipole3d', 'magnetic-dipole', { arrows: false, stream: true }, { cam: [-2.3, 0.35, 1.35], spin: 0.4 }],
+  ['g-wire', 'wire', { arrows: false, stream: true }, { cam: [-2.3, 0.35, 1.35], spin: 0.4 }],
+  ['g-helix', 'helix', { arrows: false, stream: true }, { cam: [-2.3, 0.35, 1.35], spin: 0.4 }],
+  ['g-sink', 'sink', { arrows: false, particles: true }, { cam: [-2.3, 0.35, 1.35], spin: 0.4 }],
+  ['g-rotz', 'rotation-z', { bg: 'curl' }, { cam: [-2.3, 0.35, 1.35], spin: 0.4 }],
+  ['g-lorenz', 'lorenz', {}, { cam: [-0.6, 0.25, 1.3], spin: 0.4 }],
+  /* the second melody in the 3D chapter: more strange attractors */
+  ['a-aizawa', 'aizawa', { arrows: false, stream: true }, { cam: [-2.3, 0.3, 1.3], spin: 0.4 }],
+  ['a-thomas', 'thomas', { arrows: false, stream: true }, { cam: [-2.0, 0.45, 1.3], spin: 0.4 }],
+  ['a-rossler', 'rossler', { arrows: false, stream: true }, { cam: [-2.4, 0.5, 1.3], spin: 0.4 }],
+  ['a-lorenz-top', 'lorenz', { arrows: false, stream: true }, { cam: [-1.2, 1.15, 1.25], spin: 0.5 }],
+];
+for (const [name, hash, set, o = {}] of FLASH) {
   CLIPS[name] = async (r) => {
-    await r.open(hash, { fullscreen: true, hideUI: true, warm: 4 });
-    if (lines) await r.eval(() => {
-      const t = (k) => document.querySelector('.mid .tg[data-k=' + k + ']');
-      if (t('arrows').getAttribute('aria-pressed') === 'true') t('arrows').click();
-      if (t('stream').getAttribute('aria-pressed') !== 'true') t('stream').click();
-    });
-    await r.eval((y) => window.__vf.setCam(y, 0.35, 0.92), yaw);
-    await r.tick(lines ? 60 : 30);
+    await r.open(hash, { fullscreen: true, hideUI: true, warm: 1 });
+    if (o.demo) {
+      await r.page.addStyleTag({ content: HIDE_CARD });
+      await r.eval(() => { window.__noCard = true; });
+      await DEMO(r, o.demo);
+      await r.tick(20);
+      if (!o.cam) await r.eval(() => window.__vf.center2());
+    }
+    await r.eval(SET, set);
+    await r.eval(() => { window.__vf.S.hover = { x: 1e3, y: 1e3 }; });
+    if (o.cam) await r.eval((c) => window.__vf.setCam(c[0], c[1], c[2]), o.cam);
+    await r.tick(o.demo ? 110 : 75);
     r.start(name);
-    await r.during(4, (t) => r.eval(([y, t]) => window.__vf.setCam(y + 0.5 * t, 0.35 + 0.1 * t, 0.92), [yaw, t]));
+    if (o.cam) await r.during(1.3, (t) => r.eval(([c, s, t]) => window.__vf.setCam(c[0] + s * t, c[1], c[2]), [o.cam, o.spin || 0, t]));
+    else await r.hold(1.3);
     r.finish();
   };
 }
 
-(async () => {
+module.exports = { Rec, CLIPS, VW, VH, FPS, DPR, launch };
+
+async function launch() {
+  return chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--force-device-scale-factor=' + DPR, `--window-size=${VW},${VH}`] });
+}
+
+if (require.main === module) (async () => {
   const want = process.argv.slice(2);
   const names = want.length ? want : Object.keys(CLIPS);
   for (const n of names) if (!CLIPS[n]) throw new Error('unknown clip: ' + n + ' (have: ' + Object.keys(CLIPS).join(', ') + ')');
-  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--force-device-scale-factor=' + DPR, `--window-size=${VW},${VH}`] });
+  const browser = await launch();
   try {
     for (const n of names) {
       const t0 = Date.now();
       console.log(n);
       const r = new Rec(browser);
-      try { await CLIPS[n](r); } finally { await r.close(); }
+      try { await CLIPS[n](r); } catch (e) { if (!(e instanceof StillDone)) throw e; } finally { await r.close(); }
       console.log('  done in', Math.round((Date.now() - t0) / 1000) + 's');
     }
   } finally { await browser.close(); }
